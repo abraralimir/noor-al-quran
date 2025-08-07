@@ -55,13 +55,13 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
 // Ayah-by-ayah recitation by Sheikh Sudais from the CDN
 export function getAyahAudioUrl(ayahNumber: number): string {
     const edition = 'ar.abdurrahmaansudais';
-    const bitrate = '192';
+    const bitrate = '64';
     return `https://cdn.islamic.network/quran/audio/${bitrate}/${edition}/${ayahNumber}.mp3`;
 }
 
 // Full surah recitation by Sheikh Sudais from the CDN.
 export function getSurahAudioUrl(surahNumber: number): string {
     const edition = 'ar.abdurrahmaansudais';
-    const bitrate = '192';
+    const bitrate = '64';
     return `https://cdn.islamic.network/quran/audio-surah/${bitrate}/${edition}/${surahNumber}.mp3`;
 }
