@@ -3,9 +3,10 @@ import type { Surah } from '@/types/quran';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, Rewind, FastForward } from 'lucide-react';
+import { Play, Pause, Rewind, FastForward, LoaderCircle } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { getSurahAudioUrl } from '@/lib/quran-api';
+import { useToast } from '@/hooks/use-toast';
 
 interface SurahAudioPlayerProps {
   surahs: Surah[];
@@ -13,6 +14,7 @@ interface SurahAudioPlayerProps {
 }
 
 export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlayerProps) {
+  const { toast } = useToast();
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(() => {
     if (initialSurahNumber) {
         return surahs.find(s => s.number === Number(initialSurahNumber)) ?? surahs[0];
@@ -20,88 +22,113 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     return surahs[0];
   });
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isPlayingRef = useRef(false);
 
-  const setupAudio = useCallback(() => {
-    if (!audioRef.current) {
-        audioRef.current = new Audio();
-
-        const audio = audioRef.current;
-        const setAudioData = () => {
-            setDuration(audio.duration);
-        };
-        const setAudioTime = () => {
-            setProgress(audio.currentTime);
-        };
-        const onEnded = () => setIsPlaying(false);
-        const onPlay = () => setIsPlaying(true);
-        const onPause = () => setIsPlaying(false);
-
-        audio.addEventListener('loadeddata', setAudioData);
-        audio.addEventListener('timeupdate', setAudioTime);
-        audio.addEventListener('ended', onEnded);
-        audio.addEventListener('play', onPlay);
-        audio.addEventListener('pause', onPause);
-        audio.addEventListener('error', (e) => {
-            console.error('Audio Error:', e);
-            setIsPlaying(false);
-        });
-    }
-    return audioRef.current;
-  }, []);
-
-  // Cleanup on unmount
+  // Effect to manage audio element lifecycle
   useEffect(() => {
+    audioRef.current = new Audio();
     const audio = audioRef.current;
-    return () => {
-      if (audio) {
-        audio.pause();
-        audio.src = '';
-        // Remove listeners manually if setup is more complex
+    
+    const handleCanPlay = () => {
+      setDuration(audio.duration);
+      setIsLoading(false);
+      if (isPlayingRef.current) {
+        audio.play().catch(e => {
+            console.error("Play failed in handleCanPlay", e);
+            setIsPlaying(false);
+            isPlayingRef.current = false;
+        });
       }
     };
-  }, []);
+    
+    const handleWaiting = () => setIsLoading(true);
+    const handleTimeUpdate = () => setProgress(audio.currentTime);
+    const handleEnded = () => {
+        setIsPlaying(false);
+        isPlayingRef.current = false;
+        setProgress(0);
+    };
+    const handleError = () => {
+        setIsLoading(false);
+        setIsPlaying(false);
+        isPlayingRef.current = false;
+        toast({
+            variant: "destructive",
+            title: "Audio Error",
+            description: "Could not load the audio for this Surah. Please try another one.",
+        });
+    };
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+
+    // Cleanup
+    return () => {
+        audio.pause();
+        audio.removeEventListener('canplay', handleCanPlay);
+        audio.removeEventListener('waiting', handleWaiting);
+        audio.removeEventListener('timeupdate', handleTimeUpdate);
+        audio.removeEventListener('ended', handleEnded);
+        audio.removeEventListener('error', handleError);
+        audio.removeEventListener('play', handlePlay);
+        audio.removeEventListener('pause', handlePause);
+        audio.src = '';
+    };
+  }, [toast]);
 
   useEffect(() => {
-    if (selectedSurah) {
-        const audio = setupAudio();
-        if(audio.src !== getSurahAudioUrl(selectedSurah.number)) {
-            audio.src = getSurahAudioUrl(selectedSurah.number);
-            audio.load();
-            setProgress(0);
-            setDuration(0);
-        }
+    if (selectedSurah && audioRef.current) {
+      const audio = audioRef.current;
+      const newSrc = getSurahAudioUrl(selectedSurah.number);
+      if (audio.src !== newSrc) {
+        audio.pause();
+        setProgress(0);
+        setDuration(0);
+        setIsLoading(true);
+        isPlayingRef.current = false; // Stop playback on source change
+        audio.src = newSrc;
+        audio.load();
 
-        const shouldAutoplay = !!initialSurahNumber && selectedSurah.number.toString() === initialSurahNumber;
-        if (shouldAutoplay) {
-            // Attempt to autoplay
-            audio.play().catch(error => {
-                console.log("Autoplay was prevented.", error);
-                setIsPlaying(false);
-            });
+        if (initialSurahNumber && selectedSurah.number.toString() === initialSurahNumber) {
+           isPlayingRef.current = true; // Intent to play
         }
+      }
     }
-  }, [selectedSurah, initialSurahNumber, setupAudio]);
+  }, [selectedSurah, initialSurahNumber]);
 
   const handlePlayPause = () => {
     if (!audioRef.current) return;
     if (isPlaying) {
       audioRef.current.pause();
+      isPlayingRef.current = false;
     } else {
-      audioRef.current.play().catch(error => console.error("Play failed", error));
+      audioRef.current.play().catch(e => console.error("Play failed", e));
+      isPlayingRef.current = true;
     }
+    setIsPlaying(!isPlaying);
   };
   
   const handleSelectSurah = (surahNumber: string) => {
     const surah = surahs.find(s => s.number.toString() === surahNumber);
     if (surah) {
-      if(audioRef.current && isPlaying){
-        audioRef.current.pause();
-      }
-      setSelectedSurah(surah);
+        if(audioRef.current && isPlaying){
+            audioRef.current.pause();
+            setIsPlaying(false);
+            isPlayingRef.current = false;
+        }
+        setSelectedSurah(surah);
     }
   }
 
@@ -153,7 +180,7 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
                 value={[progress]}
                 max={duration || 100}
                 onValueChange={handleSliderChange}
-                disabled={!selectedSurah || !duration}
+                disabled={!selectedSurah || !duration || isLoading}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{formatTime(progress)}</span>
@@ -165,8 +192,8 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
           <Button variant="ghost" size="icon" onClick={() => seek(-10)} aria-label="Rewind 10 seconds" disabled={!selectedSurah || !duration}>
             <Rewind className="h-6 w-6" />
           </Button>
-          <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={handlePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'} disabled={!selectedSurah}>
-            {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
+          <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={handlePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'} disabled={!selectedSurah || isLoading}>
+            {isLoading ? <LoaderCircle className="h-8 w-8 animate-spin" /> : (isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />)}
           </Button>
           <Button variant="ghost" size="icon" onClick={() => seek(10)} aria-label="Fast-forward 10 seconds" disabled={!selectedSurah || !duration}>
             <FastForward className="h-6 w-6" />
