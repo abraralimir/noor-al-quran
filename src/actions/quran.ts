@@ -10,7 +10,8 @@ interface NavigationResult {
   error?: string;
 }
 
-const normalizeString = (str: string) => str.toLowerCase().replace(/al-/g, '').replace(/[\s'-]/g, '');
+// More robust normalization: handles missing "Al-", hyphens, and spaces.
+const normalizeString = (str: string) => str.toLowerCase().replace(/^(al-)?/,'').replace(/[\s'-]/g, '');
 
 export async function handleNavigationCommand(command: string): Promise<NavigationResult> {
   try {
@@ -21,13 +22,16 @@ export async function handleNavigationCommand(command: string): Promise<Navigati
     }
 
     const surahs = await getSurahs();
-    // Fuzzy search for surah name
-    const surahNameLower = normalizeString(navOutput.surahName);
+    // The AI now provides the canonical name, so we can do a more direct search.
+    const surahNameLower = navOutput.surahName.toLowerCase();
     
+    // Fuzzy search for surah name, comparing normalized versions.
     const foundSurah = surahs.find(s => {
-      const englishName = normalizeString(s.englishName);
-      const arabicName = normalizeString(s.name.replace('سُورَةُ ', ''));
-      return englishName.includes(surahNameLower) || arabicName.includes(surahNameLower);
+      const englishName = s.englishName.toLowerCase();
+      const normalizedApiName = normalizeString(englishName);
+      const normalizedAiName = normalizeString(surahNameLower);
+      // Prioritize exact match, then fuzzy match.
+      return englishName === surahNameLower || normalizedApiName.includes(normalizedAiName);
     });
 
     if (!foundSurah) {
