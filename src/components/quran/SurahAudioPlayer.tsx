@@ -25,7 +25,7 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const formatTime = (time: number) => {
-    if (isNaN(time) || !isFinite(time) || time === 0) {
+    if (isNaN(time) || !isFinite(time) || time < 0) {
       return '0:00';
     }
     const minutes = Math.floor(time / 60);
@@ -33,8 +33,24 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
+  const playAudio = useCallback(() => {
+    if (audioRef.current && audioRef.current.readyState >= 3) {
+      audioRef.current.play().catch(e => {
+        console.error("Play failed", e);
+        toast({
+          variant: "destructive",
+          title: "Playback Error",
+          description: "Could not play audio.",
+        });
+      });
+    }
+  }, [toast]);
+  
+  // Effect to initialize the audio player and set up listeners
   useEffect(() => {
-    audioRef.current = new Audio();
+    if (!audioRef.current) {
+        audioRef.current = new Audio();
+    }
     const audio = audioRef.current;
 
     const handleTimeUpdate = () => setProgress(audio.currentTime);
@@ -44,19 +60,21 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
       }
     };
     const handleCanPlay = () => {
-      setIsLoading(false);
-      if (isPlaying) {
-        audio.play().catch(e => console.error("Play failed", e));
-      }
+        setIsLoading(false);
+        if (isPlaying) {
+            playAudio();
+        }
     };
     const handleWaiting = () => setIsLoading(true);
     const handleEnded = () => {
       setIsPlaying(false);
       setProgress(0);
     };
-    const handleError = () => {
+    const handleError = (e: Event) => {
       setIsLoading(false);
       setIsPlaying(false);
+      setProgress(0);
+      setDuration(0);
       toast({
         variant: "destructive",
         title: "Audio Error",
@@ -75,9 +93,12 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
 
-    const initial = surahs.find(s => s.number.toString() === initialSurahNumber) ?? surahs[0];
-    setSelectedSurah(initial);
-
+    // Set initial Surah
+    const initialSurah = surahs.find(s => s.number.toString() === initialSurahNumber) || surahs[0];
+    if (initialSurah) {
+        setSelectedSurah(initialSurah);
+    }
+    
     return () => {
       audio.pause();
       audio.removeEventListener('timeupdate', handleTimeUpdate);
@@ -90,26 +111,36 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
       audio.removeEventListener('pause', handlePause);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [surahs, toast]);
 
+  // Effect to handle changing the audio source when a new Surah is selected
   useEffect(() => {
     if (selectedSurah && audioRef.current) {
       const audio = audioRef.current;
-      audio.src = getSurahAudioUrl(selectedSurah.number);
-      setIsLoading(true);
-      setProgress(0);
-      setDuration(0);
-      audio.load();
+      const currentSrc = getSurahAudioUrl(selectedSurah.number);
       
-      const shouldAutoPlay = selectedSurah.number.toString() === initialSurahNumber;
-      setIsPlaying(shouldAutoPlay);
+      if (audio.src !== currentSrc) {
+        setIsLoading(true);
+        setIsPlaying(false);
+        setProgress(0);
+        setDuration(0);
+        audio.src = currentSrc;
+        audio.load();
+        
+        const shouldAutoPlay = selectedSurah.number.toString() === initialSurahNumber;
+        if(shouldAutoPlay){
+           playAudio();
+        }
+      }
     }
-  }, [selectedSurah, initialSurahNumber]);
+  }, [selectedSurah, initialSurahNumber, playAudio]);
 
   const handleSelectSurah = (surahNumber: string) => {
     const surah = surahs.find(s => s.number.toString() === surahNumber);
     if (surah) {
       setSelectedSurah(surah);
+      // When user manually selects a surah, we should attempt to play it.
+      setIsPlaying(true);
     }
   };
 
@@ -118,7 +149,7 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play().catch(e => console.error("Play failed", e));
+      playAudio();
     }
   };
   
