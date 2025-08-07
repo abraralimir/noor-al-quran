@@ -17,11 +17,10 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
 
   useEffect(() => {
-    const initialSurah = surahs.find(s => s.number.toString() === initialSurahNumber) || surahs[0];
-    if (initialSurah) {
-        setSelectedSurah(initialSurah);
+    if (surahs.length > 0) {
+      const initialSurah = surahs.find(s => s.number.toString() === initialSurahNumber) || surahs[0];
+      setSelectedSurah(initialSurah);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [surahs, initialSurahNumber]);
 
   const audioUrl = selectedSurah ? getSurahAudioUrl(selectedSurah.number) : undefined;
