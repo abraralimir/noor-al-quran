@@ -19,11 +19,12 @@ export default function Home() {
 
       <section className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
         <Image
-          src="/quran-cover.png"
+          src="https://placehold.co/1200x600.png"
           alt="Quran on a stand"
           fill
           style={{ objectFit: 'cover' }}
           className="opacity-80"
+          data-ai-hint="quran book"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
       </section>
