@@ -7,7 +7,7 @@ export default function TutorPage() {
       <Card className="h-[75vh]">
         <CardHeader>
           <CardTitle className="font-headline text-3xl">AI Quran Tutor</CardTitle>
-          <CardDescription>Ask questions about the Quran. Our AI tutor, powered by Gemini, is here to help you learn.</CardDescription>
+          <CardDescription>Ask questions about the Quran. Our AI tutor is here to help you learn.</CardDescription>
         </CardHeader>
         <TutorChat />
       </Card>
