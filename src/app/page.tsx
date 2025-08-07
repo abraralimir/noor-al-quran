@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Headphones, MessageCircleQuestion } from "lucide-react";
@@ -18,9 +19,8 @@ export default function Home() {
 
       <section className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
         <Image
-          src="https://placehold.co/1200x600.png"
+          src="/quran-cover.png"
           alt="Quran on a stand"
-          data-ai-hint="Quran book"
           fill
           style={{ objectFit: 'cover' }}
           className="opacity-80"
@@ -54,7 +54,7 @@ export default function Home() {
             </div>
             <CardTitle className="font-headline mt-4">Listen to Recitations</CardTitle>
             <CardDescription>
-              Experience the divine verses through beautiful audio recitations by Sheikh Sudais.
+              Experience the divine verses through beautiful audio recitations by Sheikh Alafasy.
             </CardDescription>
           </CardHeader>
           <CardContent>
