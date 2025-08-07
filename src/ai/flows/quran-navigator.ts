@@ -35,14 +35,14 @@ const prompt = ai.definePrompt({
 You must identify the action and the Surah name.
 - The action should be one of: 'openSurah', 'playSurah'.
 - If the command is unclear or not related to Quran navigation, set the action to 'unknown'.
-- The surahName should be the English name of the Surah, without "Al-". For example, for "Surah Al-Fatiha", the surahName should be "Fatiha".
+- The surahName should be the English name of the Surah. Do not remove "Al-" from the name.
 
 Here are some examples:
-- Command: "Open Surah Al-Fatiha" -> Output: { "action": "openSurah", "surahName": "Fatiha" }
-- Command: "I want to listen to Surah Baqarah" -> Output: { "action": "playSurah", "surahName": "Baqarah" }
+- Command: "Open Surah Al-Fatiha" -> Output: { "action": "openSurah", "surahName": "Al-Fatiha" }
+- Command: "I want to listen to Surah Baqarah" -> Output: { "action": "playSurah", "surahName": "Al-Baqarah" }
 - Command: "Read Yaseen" -> Output: { "action": "openSurah", "surahName": "Yaseen" }
-- Command: "Play me Surah Rahman" -> Output: { "action": "playSurah", "surahName": "Rahman" }
-- Command: "go to surah al kahf" -> Output: { "action": "openSurah", "surahName": "Kahf" }
+- Command: "Play me Surah Rahman" -> Output: { "action": "playSurah", "surahName": "Ar-Rahman" }
+- Command: "go to surah al kahf" -> Output: { "action": "openSurah", "surahName": "Al-Kahf" }
 - Command: "What's the weather like?" -> Output: { "action": "unknown" }
 - Command: "Tell me about prophet Muhammad" -> Output: { "action": "unknown" }
 
