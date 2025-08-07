@@ -8,8 +8,10 @@ import { SurahBookView } from './SurahBookView';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { BookText, Book, Separator } from 'lucide-react';
+import { BookText, Book } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { getSurah } from '@/lib/quran-api';
+import React from 'react';
 
 interface SurahDisplayProps {
   surahNumber: number;
