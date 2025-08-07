@@ -1,26 +1,23 @@
+
 'use client';
 
-import { useState, useRef, useEffect, type RefObject } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { Ayah } from '@/types/quran';
 import { getAyahAudioUrl } from '@/lib/quran-api';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, BookText } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+import { Play, Pause } from 'lucide-react';
 
 interface AyahCardProps {
   ayahs: Ayah[];
   surahNumber: number;
+  showTranslation: boolean;
 }
 
-export function AyahCard({ ayahs, surahNumber }: AyahCardProps) {
-  const [showTranslation, setShowTranslation] = useState(true);
+export function AyahCard({ ayahs, surahNumber, showTranslation }: AyahCardProps) {
   const [playingAyah, setPlayingAyah] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handlePlay = (ayahNumber: number) => {
-    // We use ayah number (absolute) for the key to track playing state
     const uniqueAyahKey = ayahNumber;
 
     if (playingAyah === uniqueAyahKey) {
@@ -28,7 +25,6 @@ export function AyahCard({ ayahs, surahNumber }: AyahCardProps) {
       setPlayingAyah(null);
     } else {
       if (audioRef.current) {
-        // The API needs the absolute ayah number
         audioRef.current.src = getAyahAudioUrl(ayahNumber);
         audioRef.current.play().catch(e => console.error("Audio play failed", e));
         setPlayingAyah(uniqueAyahKey);
@@ -51,18 +47,6 @@ export function AyahCard({ ayahs, surahNumber }: AyahCardProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-2 justify-end">
-        <Switch
-          id="translation-toggle"
-          checked={showTranslation}
-          onCheckedChange={setShowTranslation}
-        />
-        <Label htmlFor="translation-toggle" className="flex items-center gap-2 cursor-pointer">
-          <BookText className="w-4 h-4" />
-          <span>English Translation</span>
-        </Label>
-      </div>
-      <Separator />
       {ayahs.map((ayah) => (
         <div key={ayah.number} className="space-y-4 py-4 border-b border-border last:border-b-0">
           <div className="flex justify-between items-start gap-4">

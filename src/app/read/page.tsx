@@ -1,4 +1,5 @@
-import { getSurahs, getSurah } from '@/lib/quran-api';
+
+import { getSurahs } from '@/lib/quran-api';
 import { SurahList } from '@/components/quran/SurahList';
 import { SurahDisplay } from '@/components/quran/SurahDisplay';
 import { Sidebar, SidebarContent, SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
