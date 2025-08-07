@@ -19,7 +19,7 @@ export default function Home() {
 
       <section className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
         <Image
-          src="https://placehold.co/1200x600.png"
+          src="https://images.unsplash.com/photo-1610972458428-2a7e280c331f?q=80&w=2070&auto=format&fit=crop"
           alt="Quran on a stand"
           fill
           style={{ objectFit: 'cover' }}
