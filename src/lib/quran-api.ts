@@ -55,7 +55,7 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
 // Ayah-by-ayah recitation by Sheikh Alafasy from everyayah.com
 export function getAyahAudioUrl(ayahNumberInSurah: number, surahNumber: number): string {
     const paddedSurah = String(surahNumber).padStart(3, '0');
-    const paddedAyah = String(ayahNumberInSurah).padStart(3, '0');
+    const paddedAyah = String(ayahNumberInSura).padStart(3, '0');
     return `https://everyayah.com/data/Alafasy_128kbps/${paddedSurah}${paddedAyah}.mp3`;
 }
 
@@ -63,6 +63,6 @@ export function getAyahAudioUrl(ayahNumberInSurah: number, surahNumber: number):
 // Full surah recitation by Sheikh Alafasy from a reliable source.
 export function getSurahAudioUrl(surahNumber: number): string {
     const edition = 'ar.alafasy';
-    const bitrate = '192'; // Using higher bitrate for better quality
+    const bitrate = '128';
     return `https://cdn.islamic.network/quran/audio-surah/${bitrate}/${edition}/${surahNumber}.mp3`;
 }
