@@ -19,12 +19,11 @@ export default function Home() {
 
       <section className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
         <Image
-          src="https://images.unsplash.com/photo-1610972458428-2a7e280c331f?q=80&w=2070&auto=format&fit=crop"
+          src="/quran-cover.png"
           alt="Quran on a stand"
           fill
           style={{ objectFit: 'cover' }}
           className="opacity-80"
-          data-ai-hint="quran book"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
       </section>
