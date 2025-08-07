@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Search, BrainCircuit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { handleNavigationCommand } from '@/actions/quran';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 const formSchema = z.object({
   command: z.string().min(3, 'Please enter a longer command.'),
@@ -59,39 +59,41 @@ export function AiSearch() {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-2 relative">
-        <FormField
-          control={form.control}
-          name="command"
-          render={({ field }) => (
-            <FormItem className="flex-grow">
-              <FormControl>
-                <div className="relative flex items-center">
-                   <Tooltip>
-                    <TooltipTrigger asChild>
-                       <BrainCircuit className="absolute left-3 h-5 w-5 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>You can say things like "Open Surah Fatiha" or "Play Yaseen"</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <Input
-                    placeholder="AI Search..."
-                    className="bg-muted pl-10"
-                    {...field}
-                    disabled={isPending}
-                  />
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" size="icon" disabled={isPending} aria-label="Search">
-          {isPending ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div> : <Search size={16} />}
-        </Button>
-      </form>
-    </Form>
+    <TooltipProvider>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-2 relative">
+          <FormField
+            control={form.control}
+            name="command"
+            render={({ field }) => (
+              <FormItem className="flex-grow">
+                <FormControl>
+                  <div className="relative flex items-center">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <BrainCircuit className="absolute left-3 h-5 w-5 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>You can say things like "Open Surah Fatiha" or "Play Yaseen"</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Input
+                      placeholder="AI Search..."
+                      className="bg-muted pl-10"
+                      {...field}
+                      disabled={isPending}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" size="icon" disabled={isPending} aria-label="Search">
+            {isPending ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div> : <Search size={16} />}
+          </Button>
+        </form>
+      </Form>
+    </TooltipProvider>
   );
 }
