@@ -63,6 +63,6 @@ export function getAyahAudioUrl(ayahNumberInSurah: number, surahNumber: number):
 // Full surah recitation by Sheikh Alafasy from a reliable source.
 export function getSurahAudioUrl(surahNumber: number): string {
     const edition = 'ar.alafasy';
-    const bitrate = '128';
+    const bitrate = '192'; // Using higher bitrate for better quality
     return `https://cdn.islamic.network/quran/audio-surah/${bitrate}/${edition}/${surahNumber}.mp3`;
 }
