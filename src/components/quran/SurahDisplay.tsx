@@ -34,7 +34,7 @@ export async function SurahDisplay({ surahNumber }: SurahDisplayProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <AyahCard ayahs={surah.ayahs} />
+        <AyahCard ayahs={surah.ayahs} surahNumber={surahNumber} />
       </CardContent>
     </Card>
   );

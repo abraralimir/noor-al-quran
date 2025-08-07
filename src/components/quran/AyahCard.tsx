@@ -11,22 +11,23 @@ import { Separator } from '@/components/ui/separator';
 
 interface AyahCardProps {
   ayahs: Ayah[];
+  surahNumber: number;
 }
 
-export function AyahCard({ ayahs }: AyahCardProps) {
+export function AyahCard({ ayahs, surahNumber }: AyahCardProps) {
   const [showTranslation, setShowTranslation] = useState(true);
   const [playingAyah, setPlayingAyah] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const handlePlay = (ayahNumber: number) => {
-    if (playingAyah === ayahNumber) {
+  const handlePlay = (ayahNumberInSurah: number) => {
+    if (playingAyah === ayahNumberInSurah) {
       audioRef.current?.pause();
       setPlayingAyah(null);
     } else {
       if (audioRef.current) {
-        audioRef.current.src = getAyahAudioUrl(ayahNumber);
+        audioRef.current.src = getAyahAudioUrl(ayahNumberInSurah, surahNumber);
         audioRef.current.play().catch(e => console.error("Audio play failed", e));
-        setPlayingAyah(ayahNumber);
+        setPlayingAyah(ayahNumberInSurah);
       }
     }
   };
@@ -79,11 +80,11 @@ export function AyahCard({ ayahs }: AyahCardProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handlePlay(ayah.number)}
+              onClick={() => handlePlay(ayah.numberInSurah)}
               className="text-accent hover:text-accent hover:bg-accent/10"
-              aria-label={playingAyah === ayah.number ? "Pause recitation" : "Play recitation"}
+              aria-label={playingAyah === ayah.numberInSurah ? "Pause recitation" : "Play recitation"}
             >
-              {playingAyah === ayah.number ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+              {playingAyah === ayah.numberInSurah ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
             </Button>
           </div>
         </div>

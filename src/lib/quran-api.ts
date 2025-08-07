@@ -52,12 +52,15 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
   }
 }
 
-// Ayah-by-ayah recitation by Mishary Rashid Alafasy, as Sudais is not available per-ayah on this API.
-export function getAyahAudioUrl(ayahNumberInQuran: number): string {
-    return `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayahNumberInQuran}.mp3`;
+// Ayah-by-ayah recitation by Sheikh Sudais from a more reliable source.
+export function getAyahAudioUrl(ayahNumberInSurah: number, surahNumber: number): string {
+    const paddedSurah = String(surahNumber).padStart(3, '0');
+    const paddedAyah = String(ayahNumberInSurah).padStart(3, '0');
+    return `https://download.quranicaudio.com/quran/abdurrahmaan_as-sudais/${paddedSurah}.mp3`;
 }
 
-// Full surah recitation by Sheikh Sudais
+// Full surah recitation by Sheikh Sudais from a more reliable source.
 export function getSurahAudioUrl(surahNumber: number): string {
-    return `https://server7.mp3quran.net/sds/${String(surahNumber).padStart(3, '0')}.mp3`;
+    const paddedSurah = String(surahNumber).padStart(3, '0');
+    return `https://download.quranicaudio.com/quran/abdurrahmaan_as-sudais/${paddedSurah}.mp3`;
 }

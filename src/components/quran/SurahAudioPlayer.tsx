@@ -18,120 +18,112 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
   
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const formatTime = (time: number) => {
+    if (isNaN(time) || !isFinite(time) || time === 0) {
+      return '0:00';
+    }
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
   useEffect(() => {
-    // Initialize audio element on mount
     audioRef.current = new Audio();
     const audio = audioRef.current;
 
-    const onTimeUpdate = () => setProgress(audio.currentTime);
-    const onDurationChange = () => {
-        if (isFinite(audio.duration)) {
-            setDuration(audio.duration);
-        }
+    const handleTimeUpdate = () => setProgress(audio.currentTime);
+    const handleDurationChange = () => {
+      if (isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
     };
-    const onCanPlay = () => {
-      setIsLoading(false)
+    const handleCanPlay = () => {
+      setIsLoading(false);
       if (isPlaying) {
         audio.play().catch(e => console.error("Play failed", e));
       }
     };
-    const onWaiting = () => setIsLoading(true);
-    const onEnded = () => setIsPlaying(false);
-    const onError = () => {
-        setIsLoading(false);
-        setIsPlaying(false);
-        toast({
-            variant: "destructive",
-            title: "Audio Error",
-            description: "Could not load the audio. Please try another Surah.",
-        });
+    const handleWaiting = () => setIsLoading(true);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setProgress(0);
     };
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
+    const handleError = () => {
+      setIsLoading(false);
+      setIsPlaying(false);
+      toast({
+        variant: "destructive",
+        title: "Audio Error",
+        description: "Could not load the audio. Please try another Surah or check your connection.",
+      });
+    };
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
 
-    audio.addEventListener('timeupdate', onTimeUpdate);
-    audio.addEventListener('durationchange', onDurationChange);
-    audio.addEventListener('canplay', onCanPlay);
-    audio.addEventListener('waiting', onWaiting);
-    audio.addEventListener('ended', onEnded);
-    audio.addEventListener('error', onError);
-    audio.addEventListener('play', onPlay);
-    audio.addEventListener('pause', onPause);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('durationchange', handleDurationChange);
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
 
-    // Set initial surah
-    const initialSurah = surahs.find(s => s.number.toString() === initialSurahNumber) ?? surahs[0];
-    setSelectedSurah(initialSurah);
+    const initial = surahs.find(s => s.number.toString() === initialSurahNumber) ?? surahs[0];
+    setSelectedSurah(initial);
 
     return () => {
-        if (audio) {
-            audio.pause();
-            audio.src = '';
-            // Clean up event listeners
-            audio.removeEventListener('timeupdate', onTimeUpdate);
-            audio.removeEventListener('durationchange', onDurationChange);
-            audio.removeEventListener('canplay', onCanPlay);
-            audio.removeEventListener('waiting', onWaiting);
-            audio.removeEventListener('ended', onEnded);
-            audio.removeEventListener('error', onError);
-            audio.removeEventListener('play', onPlay);
-            audio.removeEventListener('pause', onPause);
-            audioRef.current = null;
-        }
+      audio.pause();
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('durationchange', handleDurationChange);
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only on mount
-
+  }, []);
 
   useEffect(() => {
     if (selectedSurah && audioRef.current) {
-        const audio = audioRef.current;
-        setIsLoading(true);
-        audio.src = getSurahAudioUrl(selectedSurah.number);
-        audio.load();
-        
-        // Auto-play if it's the initial surah
-        if (selectedSurah.number.toString() === initialSurahNumber) {
-          setIsPlaying(true);
-        } else {
-          setIsPlaying(false);
-        }
+      const audio = audioRef.current;
+      audio.src = getSurahAudioUrl(selectedSurah.number);
+      setIsLoading(true);
+      setProgress(0);
+      setDuration(0);
+      audio.load();
+      
+      const shouldAutoPlay = selectedSurah.number.toString() === initialSurahNumber;
+      setIsPlaying(shouldAutoPlay);
     }
   }, [selectedSurah, initialSurahNumber]);
 
   const handleSelectSurah = (surahNumber: string) => {
     const surah = surahs.find(s => s.number.toString() === surahNumber);
     if (surah) {
-        setSelectedSurah(surah);
+      setSelectedSurah(surah);
     }
-  }
+  };
 
-  const handlePlayPause = () => {
-    if (!audioRef.current || !selectedSurah) return;
-
+  const togglePlayPause = () => {
+    if (!audioRef.current || isLoading) return;
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play().catch(e => {
-            console.error("Play failed", e);
-            toast({
-                variant: "destructive",
-                title: "Playback Error",
-                description: "Could not play the audio file.",
-            });
-            setIsPlaying(false);
-        });
+      audioRef.current.play().catch(e => console.error("Play failed", e));
     }
-    setIsPlaying(!isPlaying);
   };
   
   const handleSliderChange = (value: number[]) => {
-     if (audioRef.current) {
+    if (audioRef.current) {
       audioRef.current.currentTime = value[0];
       setProgress(value[0]);
     }
@@ -141,15 +133,6 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     if (audioRef.current && isFinite(audioRef.current.duration)) {
       audioRef.current.currentTime = Math.max(0, Math.min(audioRef.current.duration, audioRef.current.currentTime + seconds));
     }
-  };
-
-  const formatTime = (time: number) => {
-    if (isNaN(time) || !isFinite(time) || time === 0) {
-        return '0:00';
-    }
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
   return (
@@ -190,7 +173,7 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
           <Button variant="ghost" size="icon" onClick={() => seek(-10)} aria-label="Rewind 10 seconds" disabled={!selectedSurah || isLoading}>
             <Rewind className="h-6 w-6" />
           </Button>
-          <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={handlePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'} disabled={!selectedSurah || isLoading}>
+          <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={togglePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'} disabled={!selectedSurah || isLoading}>
             {isLoading ? <LoaderCircle className="h-8 w-8 animate-spin" /> : (isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />)}
           </Button>
           <Button variant="ghost" size="icon" onClick={() => seek(10)} aria-label="Fast-forward 10 seconds" disabled={!selectedSurah || isLoading}>
