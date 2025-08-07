@@ -52,9 +52,9 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
   }
 }
 
-// Using Mishary Rashid Alafasy as a high-quality alternative for ayah-by-ayah recitation.
+// Ayah-by-ayah recitation by Sheikh Sudais from a different provider.
 export function getAyahAudioUrl(ayahNumberInQuran: number): string {
-    return `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayahNumberInQuran}.mp3`;
+    return `https://cdn.islamic.network/quran/audio/128/ar.abdurrahmaansudais/${ayahNumberInQuran}.mp3`;
 }
 
 // Full surah recitation by Sheikh Sudais
