@@ -52,14 +52,16 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
   }
 }
 
-// Ayah-by-ayah recitation by Sheikh Sudais from a more reliable source.
-export function getAyahAudioUrl(ayahNumberInSurah: number, surahNumber: number): string {
+// Ayah-by-ayah recitation by Sheikh Sudais from everyayah.com
+export function getAyahAudioUrl(ayahNumber: number, surahNumber: number): string {
     const paddedSurah = String(surahNumber).padStart(3, '0');
-    const paddedAyah = String(ayahNumberInSurah).padStart(3, '0');
-    return `https://download.quranicaudio.com/quran/abdurrahmaan_as-sudais/${paddedSurah}.mp3`;
+    const paddedAyah = String(ayahNumber).padStart(3, '0');
+    // Note: everyayah.com uses the global ayah number, not numberInSurah.
+    // However, the quran.cloud API provides the global ayah number in the `number` field.
+    return `https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/${paddedSurah}${paddedAyah}.mp3`;
 }
 
-// Full surah recitation by Sheikh Sudais from a more reliable source.
+// Full surah recitation by Sheikh Sudais from a reliable source.
 export function getSurahAudioUrl(surahNumber: number): string {
     const paddedSurah = String(surahNumber).padStart(3, '0');
     return `https://download.quranicaudio.com/quran/abdurrahmaan_as-sudais/${paddedSurah}.mp3`;

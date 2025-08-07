@@ -13,47 +13,57 @@ export function useAudioPlayer({ src, autoplay = false }: UseAudioPlayerProps) {
   const { toast } = useToast();
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
 
-  const cleanup = useCallback(() => {
+  const setupAudio = useCallback(() => {
     if (audioRef.current) {
-      const audio = audioRef.current;
-      audio.removeEventListener('play', handlePlay);
-      audio.removeEventListener('pause', handlePause);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('durationchange', handleDurationChange);
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('waiting', handleWaiting);
-      audio.removeEventListener('error', handleError);
-      audio.pause();
-      audioRef.current = null;
+        // Clean up existing listeners before adding new ones
+        const audio = audioRef.current;
+        audio.removeEventListener('play', onPlay);
+        audio.removeEventListener('pause', onPause);
+        audio.removeEventListener('ended', onEnded);
+        audio.removeEventListener('timeupdate', onTimeUpdate);
+        audio.removeEventListener('durationchange', onDurationChange);
+        audio.removeEventListener('canplay', onCanPlay);
+        audio.removeEventListener('waiting', onWaiting);
+        audio.removeEventListener('error', onError);
+
+        // Add new listeners
+        audio.addEventListener('play', onPlay);
+        audio.addEventListener('pause', onPause);
+        audio.addEventListener('ended', onEnded);
+        audio.addEventListener('timeupdate', onTimeUpdate);
+        audio.addEventListener('durationchange', onDurationChange);
+        audio.addEventListener('canplay', onCanPlay);
+        audio.addEventListener('waiting', onWaiting);
+        audio.addEventListener('error', onError);
     }
   }, []);
 
-  const handlePlay = () => setIsPlaying(true);
-  const handlePause = () => setIsPlaying(false);
-  const handleEnded = () => setIsPlaying(false);
-  const handleTimeUpdate = () => {
+  const onPlay = () => setIsPlaying(true);
+  const onPause = () => setIsPlaying(false);
+  const onEnded = () => setIsPlaying(false);
+  const onTimeUpdate = () => {
     if (audioRef.current) {
       setProgress(audioRef.current.currentTime);
     }
   };
-  const handleDurationChange = () => {
+  const onDurationChange = () => {
     if (audioRef.current && isFinite(audioRef.current.duration)) {
       setDuration(audioRef.current.duration);
+      setIsLoading(false);
     }
   };
-  const handleCanPlay = () => {
+  const onCanPlay = () => {
     setIsLoading(false);
-    if (autoplay) {
-      audioRef.current?.play().catch(e => console.error("Autoplay failed", e));
+    if (autoplay && audioRef.current) {
+      audioRef.current.play().catch(onError);
     }
   };
-  const handleWaiting = () => setIsLoading(true);
-  const handleError = () => {
+  const onWaiting = () => setIsLoading(true);
+  const onError = () => {
     setIsLoading(false);
     setIsPlaying(false);
     toast({
@@ -62,48 +72,46 @@ export function useAudioPlayer({ src, autoplay = false }: UseAudioPlayerProps) {
       description: 'Could not load the audio. Please try another Surah or check your connection.',
     });
   };
+  
+  useEffect(() => {
+    if (!audioRef.current) {
+        audioRef.current = new Audio();
+    }
+    setupAudio();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  useEffect(() => {
+    if (src && audioRef.current) {
+      if (audioRef.current.src !== src) {
+        setIsLoading(true);
+        setIsPlaying(false);
+        setProgress(0);
+        setDuration(0);
+        audioRef.current.src = src;
+        audioRef.current.load();
+      }
+    } else if (!src && audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.removeAttribute('src');
+    }
+  }, [src]);
 
   useEffect(() => {
-    // Only run effect if src is provided
-    if (src) {
-      // Cleanup previous audio element if it exists
-      if (audioRef.current) {
-        cleanup();
-      }
-      
-      const audio = new Audio(src);
-      audioRef.current = audio;
-      setIsLoading(true);
-      setIsPlaying(false);
-      setProgress(0);
-      setDuration(0);
-
-      audio.addEventListener('play', handlePlay);
-      audio.addEventListener('pause', handlePause);
-      audio.addEventListener('ended', handleEnded);
-      audio.addEventListener('timeupdate', handleTimeUpdate);
-      audio.addEventListener('durationchange', handleDurationChange);
-      audio.addEventListener('canplay', handleCanPlay);
-      audio.addEventListener('waiting', handleWaiting);
-      audio.addEventListener('error', handleError);
-      
-      audio.load();
-    }
-
     return () => {
-      if (src) {
-        cleanup();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src, autoplay]);
+  }, []);
 
   const togglePlayPause = () => {
-    if (audioRef.current) {
+    if (audioRef.current && audioRef.current.src) {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play().catch(e => console.error("Play failed", e));
+        audioRef.current.play().catch(onError);
       }
     }
   };
@@ -116,7 +124,7 @@ export function useAudioPlayer({ src, autoplay = false }: UseAudioPlayerProps) {
   };
 
   const handleSliderChange = (value: number[]) => {
-    if (audioRef.current) {
+    if (audioRef.current && isFinite(audioRef.current.duration)) {
       audioRef.current.currentTime = value[0];
       setProgress(value[0]);
     }
