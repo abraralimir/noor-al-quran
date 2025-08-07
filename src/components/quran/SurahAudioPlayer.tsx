@@ -23,32 +23,36 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    const audio = new Audio();
-    audioRef.current = audio;
-
-    const setAudioData = () => {
-      setDuration(audio.duration);
-    };
-
-    const setAudioTime = () => {
-      setProgress(audio.currentTime);
-    };
-
-    audio.addEventListener('loadeddata', setAudioData);
-    audio.addEventListener('timeupdate', setAudioTime);
-    audio.addEventListener('ended', () => setIsPlaying(false));
-
+    // Do not create audio element here.
+    // It will be created when a surah is selected.
+    const audio = audioRef.current;
+    
     return () => {
-      audio.removeEventListener('loadeddata', setAudioData);
-      audio.removeEventListener('timeupdate', setAudioTime);
-      audio.removeEventListener('ended', () => setIsPlaying(false));
-      audio.pause();
+      audio?.pause();
     };
   }, []);
 
   useEffect(() => {
-    if (selectedSurah && audioRef.current) {
-      audioRef.current.src = getSurahAudioUrl(selectedSurah.number);
+    if (selectedSurah) {
+        if (!audioRef.current) {
+            const audio = new Audio(getSurahAudioUrl(selectedSurah.number));
+            audioRef.current = audio;
+
+            const setAudioData = () => {
+                setDuration(audio.duration);
+            };
+
+            const setAudioTime = () => {
+                setProgress(audio.currentTime);
+            };
+
+            audio.addEventListener('loadeddata', setAudioData);
+            audio.addEventListener('timeupdate', setAudioTime);
+            audio.addEventListener('ended', () => setIsPlaying(false));
+        } else {
+             audioRef.current.src = getSurahAudioUrl(selectedSurah.number);
+        }
+      
       setIsPlaying(false);
       setProgress(0);
       if (initialSurahNumber) {
@@ -90,6 +94,9 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
   };
 
   const formatTime = (time: number) => {
+    if (isNaN(time) || time === Infinity) {
+        return '0:00';
+    }
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
