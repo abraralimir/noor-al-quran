@@ -23,112 +23,125 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
   });
   
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    // Initialize audio element
-    audioRef.current = new Audio();
-    const audio = audioRef.current;
+  const setupAudio = useCallback(() => {
+    if (!audioRef.current) {
+        audioRef.current = new Audio();
+        const audio = audioRef.current;
 
-    // Define event handlers
-    const onTimeUpdate = () => setProgress(audio.currentTime);
-    const onDurationChange = () => {
-        if (isFinite(audio.duration)) {
-            setDuration(audio.duration);
-        }
-    };
-    const onCanPlay = () => setIsLoading(false);
-    const onWaiting = () => setIsLoading(true);
-    const onEnded = () => setIsPlaying(false);
-    const onError = () => {
-        setIsLoading(false);
-        setIsPlaying(false);
-        toast({
-            variant: "destructive",
-            title: "Audio Error",
-            description: "Could not load the audio. Please try another Surah.",
-        });
-    };
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
+        const onTimeUpdate = () => setProgress(audio.currentTime);
+        const onDurationChange = () => {
+            if (isFinite(audio.duration)) {
+                setDuration(audio.duration);
+            }
+        };
+        const onCanPlay = () => setIsLoading(false);
+        const onWaiting = () => setIsLoading(true);
+        const onEnded = () => setIsPlaying(false);
+        const onError = () => {
+            setIsLoading(false);
+            setIsPlaying(false);
+            toast({
+                variant: "destructive",
+                title: "Audio Error",
+                description: "Could not load the audio. Please try another Surah.",
+            });
+        };
+        const onPlay = () => setIsPlaying(true);
+        const onPause = () => setIsPlaying(false);
 
-    // Add event listeners
-    audio.addEventListener('timeupdate', onTimeUpdate);
-    audio.addEventListener('durationchange', onDurationChange);
-    audio.addEventListener('canplay', onCanPlay);
-    audio.addEventListener('waiting', onWaiting);
-    audio.addEventListener('ended', onEnded);
-    audio.addEventListener('error', onError);
-    audio.addEventListener('play', onPlay);
-    audio.addEventListener('pause', onPause);
-    
-    // Cleanup function
-    return () => {
-      audio.pause();
-      audio.removeEventListener('timeupdate', onTimeUpdate);
-      audio.removeEventListener('durationchange', onDurationChange);
-      audio.removeEventListener('canplay', onCanPlay);
-      audio.removeEventListener('waiting', onWaiting);
-      audio.removeEventListener('ended', onEnded);
-      audio.removeEventListener('error', onError);
-      audio.removeEventListener('play', onPlay);
-      audio.removeEventListener('pause', onPause);
-      audio.src = '';
-    };
+        audio.addEventListener('timeupdate', onTimeUpdate);
+        audio.addEventListener('durationchange', onDurationChange);
+        audio.addEventListener('canplay', onCanPlay);
+        audio.addEventListener('waiting', onWaiting);
+        audio.addEventListener('ended', onEnded);
+        audio.addEventListener('error', onError);
+        audio.addEventListener('play', onPlay);
+        audio.addEventListener('pause', onPause);
+    }
   }, [toast]);
 
-  // Effect to load audio when selectedSurah changes
+
+  useEffect(() => {
+    setupAudio();
+    const audio = audioRef.current;
+    
+    return () => {
+        if (audio) {
+            audio.pause();
+            audio.src = '';
+            // Remove all listeners by replacing the element
+            audio.replaceWith(audio.cloneNode(true));
+            audioRef.current = null;
+        }
+    };
+  }, [setupAudio]);
+
+
   useEffect(() => {
     if (selectedSurah && audioRef.current) {
         setIsLoading(true);
+        setIsPlaying(false);
+        setProgress(0);
+        setDuration(0);
         audioRef.current.src = getSurahAudioUrl(selectedSurah.number);
         audioRef.current.load();
-        if (isPlaying) {
-            audioRef.current.play().catch(e => console.error("Error playing new surah:", e));
-        }
     }
-  }, [selectedSurah, isPlaying]);
+  }, [selectedSurah]);
 
-  // Auto-play if coming from a link
+
   useEffect(() => {
     if (initialSurahNumber && audioRef.current && selectedSurah?.number.toString() === initialSurahNumber) {
-        handlePlayPause();
+        const audio = audioRef.current;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+             console.error("Auto-play failed:", error);
+          });
+        }
     }
-    // This should only run once on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialSurahNumber]);
+  }, [initialSurahNumber, selectedSurah]);
 
   const handleSelectSurah = (surahNumber: string) => {
     const surah = surahs.find(s => s.number.toString() === surahNumber);
     if (surah) {
-        const wasPlaying = isPlaying;
-        if(isPlaying) {
-            audioRef.current?.pause();
-        }
         setSelectedSurah(surah);
-        if (wasPlaying) {
-             // Let the useEffect for selectedSurah handle the replay
-        }
     }
   }
 
   const handlePlayPause = () => {
-    if (!audioRef.current || isLoading) return;
+    if (!audioRef.current) return;
+
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play().catch(e => {
-        console.error("Play failed", e);
-        toast({
-            variant: "destructive",
-            title: "Playback Error",
-            description: "Could not play the audio file.",
+       if(!audioRef.current.src) {
+           if(selectedSurah) {
+              audioRef.current.src = getSurahAudioUrl(selectedSurah.number);
+              audioRef.current.load();
+           } else {
+               toast({ variant: "destructive", title: "No Surah Selected", description: "Please select a surah to play."});
+               return;
+           }
+       }
+
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+            console.error("Play failed", e);
+            toast({
+                variant: "destructive",
+                title: "Playback Error",
+                description: "Could not play the audio file.",
+            });
+            setIsPlaying(false);
         });
-      });
+      }
     }
   };
   

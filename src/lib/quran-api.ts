@@ -52,12 +52,12 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
   }
 }
 
-// NOTE: The user requested Sheikh Sudais, but he is not available in the free tier of this API.
-// Using Mishary Rashid Alafasy as a high-quality alternative.
+// Using Mishary Rashid Alafasy as a high-quality alternative for ayah-by-ayah recitation.
 export function getAyahAudioUrl(ayahNumberInQuran: number): string {
     return `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayahNumberInQuran}.mp3`;
 }
 
+// Full surah recitation by Sheikh Sudais
 export function getSurahAudioUrl(surahNumber: number): string {
-    return `https://server7.mp3quran.net/afs/${String(surahNumber).padStart(3, '0')}.mp3`;
+    return `https://server7.mp3quran.net/sds/${String(surahNumber).padStart(3, '0')}.mp3`;
 }
