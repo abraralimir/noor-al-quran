@@ -3,11 +3,14 @@
 import { quranNavigator } from '@/ai/flows/quran-navigator';
 import { quranTutor } from '@/ai/flows/quran-tutor';
 import { getSurahs } from '@/lib/quran-api';
+import { Surah } from '@/types/quran';
 
 interface NavigationResult {
   path?: string;
   error?: string;
 }
+
+const normalizeString = (str: string) => str.toLowerCase().replace(/al-/g, '').replace(/[\s'-]/g, '');
 
 export async function handleNavigationCommand(command: string): Promise<NavigationResult> {
   try {
@@ -19,14 +22,16 @@ export async function handleNavigationCommand(command: string): Promise<Navigati
 
     const surahs = await getSurahs();
     // Fuzzy search for surah name
-    const surahNameLower = navOutput.surahName.toLowerCase().replace(/al-/g, '').trim();
-    const foundSurah = surahs.find(s => 
-        s.englishName.toLowerCase().replace(/al-/g, '').trim().includes(surahNameLower) ||
-        s.name.toLowerCase().includes(surahNameLower)
-    );
+    const surahNameLower = normalizeString(navOutput.surahName);
+    
+    const foundSurah = surahs.find(s => {
+      const englishName = normalizeString(s.englishName);
+      const arabicName = normalizeString(s.name.replace('سُورَةُ ', ''));
+      return englishName.includes(surahNameLower) || arabicName.includes(surahNameLower);
+    });
 
     if (!foundSurah) {
-      return { error: `Surah "${navOutput.surahName}" could not be found.` };
+      return { error: `Surah "${navOutput.surahName}" could not be found. Please try another name.` };
     }
 
     if (navOutput.action === 'openSurah') {

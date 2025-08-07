@@ -30,22 +30,26 @@ const prompt = ai.definePrompt({
   name: 'quranNavigatorPrompt',
   input: {schema: QuranNavigatorInputSchema},
   output: {schema: QuranNavigatorOutputSchema},
-  prompt: `You are a helpful AI assistant designed to navigate the Quran based on user commands.
+  prompt: `You are an intelligent Quran navigation assistant. Your task is to interpret user commands and identify the intended action (open or play a Surah) and the name of the Surah.
 
-  Examples of commands and expected output:
-  - Command: Open Surah Al-Fatiha
-    Output: { "action": "openSurah", "surahName": "Al-Fatiha" }
-  - Command: Play Surah Al-Baqarah
-    Output: { "action": "playSurah", "surahName": "Al-Baqarah" }
-  - Command: What is the meaning of life?
-    Output: { "action": "unknown" }
-  - Command: Play some random music
-   Output: { \"action\": \"unknown\" }
+You must identify the action and the Surah name.
+- The action should be one of: 'openSurah', 'playSurah'.
+- If the command is unclear or not related to Quran navigation, set the action to 'unknown'.
+- The surahName should be the English name of the Surah, without "Al-". For example, for "Surah Al-Fatiha", the surahName should be "Fatiha".
 
-  Analyze the following command and determine the appropriate action and surah name (if any). If the command is not related to opening or playing a surah, return action as \"unknown\".
+Here are some examples:
+- Command: "Open Surah Al-Fatiha" -> Output: { "action": "openSurah", "surahName": "Fatiha" }
+- Command: "I want to listen to Surah Baqarah" -> Output: { "action": "playSurah", "surahName": "Baqarah" }
+- Command: "Read Yaseen" -> Output: { "action": "openSurah", "surahName": "Yaseen" }
+- Command: "Play me Surah Rahman" -> Output: { "action": "playSurah", "surahName": "Rahman" }
+- Command: "go to surah al kahf" -> Output: { "action": "openSurah", "surahName": "Kahf" }
+- Command: "What's the weather like?" -> Output: { "action": "unknown" }
+- Command: "Tell me about prophet Muhammad" -> Output: { "action": "unknown" }
 
-  Command: {{{command}}}
-  Output:`, // Ensure proper escaping of backslashes
+Now, analyze the following user command.
+
+Command: {{{command}}}
+Output:`,
 });
 
 const quranNavigatorFlow = ai.defineFlow(
