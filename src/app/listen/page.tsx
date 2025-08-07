@@ -16,7 +16,7 @@ export default async function ListenPage({
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-3xl">Listen to the Quran</CardTitle>
-          <CardDescription>Select a Surah to listen to the beautiful recitation by Sheikh Sudais.</CardDescription>
+          <CardDescription>Select a Surah to listen to the beautiful recitation by Mishary Rashid Alafasy.</CardDescription>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<p>Loading audio player...</p>}>
