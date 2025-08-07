@@ -41,7 +41,7 @@ export function Header() {
               href={href}
               className={cn(
                 'transition-colors hover:text-primary flex items-center gap-2',
-                pathname?.startsWith(href) ? 'text-primary' : 'text-muted-foreground'
+                pathname && pathname.startsWith(href) ? 'text-primary' : 'text-muted-foreground'
               )}
             >
               <Icon className="h-4 w-4" />
