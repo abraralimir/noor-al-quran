@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -7,16 +8,23 @@ interface UseAudioPlayerProps {
   src?: string;
   autoplay?: boolean;
   mediaMetadata?: MediaMetadataInit;
+  onEnded?: () => void;
 }
 
-export function useAudioPlayer({ src, autoplay = false, mediaMetadata }: UseAudioPlayerProps) {
+export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }: UseAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const onEndedRef = useRef(onEnded);
   const { toast } = useToast();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
+
+  // Keep the onEnded callback ref up to date
+  useEffect(() => {
+    onEndedRef.current = onEnded;
+  }, [onEnded]);
 
   const onPlay = () => {
     setIsPlaying(true);
@@ -33,7 +41,12 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata }: UseAudi
     }
   };
 
-  const onEnded = () => setIsPlaying(false);
+  const handleEnded = () => {
+    setIsPlaying(false);
+    if (onEndedRef.current) {
+      onEndedRef.current();
+    }
+  };
 
   const onTimeUpdate = () => {
     if (audioRef.current) {
@@ -90,7 +103,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata }: UseAudi
     // Add listeners
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
-    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('ended', handleEnded);
     audio.addEventListener('timeupdate', onTimeUpdate);
     audio.addEventListener('durationchange', onDurationChange);
     audio.addEventListener('canplay', onCanPlay);
@@ -102,13 +115,14 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata }: UseAudi
         navigator.mediaSession.setActionHandler('pause', () => audioRef.current?.pause());
         navigator.mediaSession.setActionHandler('seekbackward', () => seek(-10));
         navigator.mediaSession.setActionHandler('seekforward', () => seek(10));
+        // Note: 'nexttrack' and 'previoustrack' would be handled by the component logic
     }
     
     return () => {
       // Clean up listeners
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
-      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('timeupdate', onTimeUpdate);
       audio.removeEventListener('durationchange', onDurationChange);
       audio.removeEventListener('canplay', onCanPlay);
@@ -133,6 +147,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata }: UseAudi
         setDuration(0);
         audioRef.current.src = src;
         audioRef.current.load();
+        // After source change, if autoplay is intended, onCanPlay will handle it.
       }
     } else if (!src && audioRef.current) {
         audioRef.current.pause();

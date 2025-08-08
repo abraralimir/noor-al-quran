@@ -1,9 +1,10 @@
+
 'use client';
 import type { Surah } from '@/types/quran';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, Rewind, FastForward, LoaderCircle } from 'lucide-react';
+import { Play, Pause, Rewind, FastForward, LoaderCircle, SkipBack, SkipForward } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { getSurahAudioUrl } from '@/lib/quran-api';
 import { useAudioPlayer } from '@/hooks/use-audio-player';
@@ -15,6 +16,13 @@ interface SurahAudioPlayerProps {
 
 export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlayerProps) {
   const [selectedSurah, setSelectedSurah] = useState<Surah | null>(null);
+
+  const handleNextSurah = useCallback(() => {
+    if (!selectedSurah || surahs.length === 0) return;
+    const currentIndex = surahs.findIndex(s => s.number === selectedSurah.number);
+    const nextIndex = (currentIndex + 1) % surahs.length; // Loop back to the start
+    setSelectedSurah(surahs[nextIndex]);
+  }, [selectedSurah, surahs]);
 
   useEffect(() => {
     if (surahs.length > 0) {
@@ -36,11 +44,12 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     formatTime 
   } = useAudioPlayer({ 
     src: audioUrl,
+    onEnded: handleNextSurah, // Autoplay next surah
     mediaMetadata: selectedSurah ? {
         title: `Surah ${selectedSurah.englishName}`,
         artist: 'Mishary Rashid Alafasy',
         album: 'Noor Al Quran',
-        artwork: [{ src: '/book-1283468.jpg', sizes: '512x512', type: 'image/jpeg' }]
+        artwork: [{ src: '/book-1283468.jpg', type: 'image/jpeg', sizes: '512x512' }]
     } : undefined,
     autoplay: !!initialSurahNumber 
   });
@@ -51,6 +60,14 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
       setSelectedSurah(surah);
     }
   };
+
+  const handlePreviousSurah = () => {
+    if (!selectedSurah || surahs.length === 0) return;
+    const currentIndex = surahs.findIndex(s => s.number === selectedSurah.number);
+    const prevIndex = (currentIndex - 1 + surahs.length) % surahs.length; // Loop to the end
+    setSelectedSurah(surahs[prevIndex]);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -87,6 +104,9 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
         </div>
         
         <div className="flex items-center justify-center space-x-4">
+           <Button variant="ghost" size="icon" onClick={handlePreviousSurah} aria-label="Previous Surah" disabled={!selectedSurah || isLoading}>
+            <SkipBack className="h-6 w-6" />
+          </Button>
           <Button variant="ghost" size="icon" onClick={() => seek(-10)} aria-label="Rewind 10 seconds" disabled={!selectedSurah || isLoading}>
             <Rewind className="h-6 w-6" />
           </Button>
@@ -95,6 +115,9 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
           </Button>
           <Button variant="ghost" size="icon" onClick={() => seek(10)} aria-label="Fast-forward 10 seconds" disabled={!selectedSurah || isLoading}>
             <FastForward className="h-6 w-6" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={handleNextSurah} aria-label="Next Surah" disabled={!selectedSurah || isLoading}>
+            <SkipForward className="h-6 w-6" />
           </Button>
         </div>
       </div>
