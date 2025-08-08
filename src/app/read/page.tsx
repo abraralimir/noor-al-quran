@@ -22,13 +22,13 @@ export async function generateMetadata(
   if (surah) {
     const title = `Read Surah ${surah.englishName}`;
     const description = `Immerse yourself in the Holy Quran. Read Surah ${surah.englishName} with a clean, readable interface and optional English translations.`;
+    
     return {
       title,
       description,
       openGraph: {
         title,
         description,
-        url: `/read?surah=${surahNumber}`,
       },
       twitter: {
         title,
@@ -41,15 +41,6 @@ export async function generateMetadata(
   return {
     title: 'Read the Quran',
     description: 'Immerse yourself in the Holy Quran. Read Surahs with a clean, readable interface and optional English translations. Navigate easily through all 114 chapters.',
-    openGraph: {
-      title: 'Read the Quran',
-      description: 'Immerse yourself in the Holy Quran with a clean interface and English translations.',
-      url: '/read',
-    },
-    twitter: {
-      title: 'Read the Quran',
-      description: 'Immerse yourself in the Holy Quran with a clean interface and English translations.',
-    },
   };
 }
 

@@ -12,41 +12,34 @@ export async function generateMetadata(
   { searchParams }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const surahNumber = searchParams?.surah ? Number(searchParams.surah) : null;
   const surahs = await getSurahs();
-  const surah = surahNumber ? surahs.find(s => s.number === surahNumber) : null;
-
-  if (surah) {
-    const title = `Listen to Surah ${surah.englishName}`;
-    const description = `Experience the divine verses of Surah ${surah.englishName} through beautiful audio recitation by Sheikh Mishary Rashid Alafasy.`;
-    return {
-      title,
-      description,
-      openGraph: {
+  const surahNumber = searchParams?.surah ? Number(searchParams.surah) : null;
+  
+  if (surahNumber) {
+    const surah = surahs.find(s => s.number === surahNumber);
+    if (surah) {
+      const title = `Listen to Surah ${surah.englishName}`;
+      const description = `Experience the divine verses of Surah ${surah.englishName} through beautiful audio recitation by Sheikh Mishary Rashid Alafasy.`;
+      
+      return {
         title,
         description,
-        url: `/listen?surah=${surahNumber}`,
-      },
-      twitter: {
-        title,
-        description,
-      },
-    };
+        openGraph: {
+          title,
+          description,
+        },
+        twitter: {
+          title,
+          description,
+        },
+      };
+    }
   }
 
   // Default metadata
   return {
     title: 'Listen to the Quran',
     description: 'Experience the divine verses through beautiful audio recitations by Sheikh Mishary Rashid Alafasy. Create custom playlists and listen seamlessly.',
-    openGraph: {
-      title: 'Listen to the Quran',
-      description: 'Experience beautiful audio recitations and create custom playlists.',
-      url: '/listen',
-    },
-    twitter: {
-      title: 'Listen to the Quran',
-      description: 'Experience beautiful audio recitations and create custom playlists.',
-    },
   };
 }
 

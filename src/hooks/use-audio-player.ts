@@ -11,7 +11,7 @@ interface UseAudioPlayerProps {
 }
 
 // Absolute path to the image in the /public directory
-const artworkUrl = '/book-1283468.jpg'; 
+const artworkUrl = '/book-1920.jpg'; 
 
 export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }: UseAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -37,8 +37,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
       navigator.mediaSession.metadata = new MediaMetadata({
         ...mediaMetadata,
         artwork: [
-          { src: artworkUrl, sizes: '180x180', type: 'image/jpeg' },
-          { src: artworkUrl, sizes: '512x512', type: 'image/jpeg' },
+          { src: artworkUrl, sizes: '1920x1280', type: 'image/jpeg' },
         ]
       });
     }

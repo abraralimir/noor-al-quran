@@ -19,7 +19,7 @@ export default function Home() {
 
       <section className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
         <Image
-          src="/book-1283468.jpg"
+          src="/book-1920.jpg"
           alt="The Holy Quran on a decorated stand"
           fill
           priority
