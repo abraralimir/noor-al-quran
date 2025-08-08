@@ -7,9 +7,16 @@ import { useToast } from '@/hooks/use-toast';
 interface UseAudioPlayerProps {
   src?: string;
   autoplay?: boolean;
-  mediaMetadata?: MediaMetadataInit;
+  mediaMetadata?: Omit<MediaMetadataInit, 'artwork'>; // Artwork will be handled internally
   onEnded?: () => void;
 }
+
+const getAbsoluteUrl = (path: string) => {
+  if (typeof window === 'undefined') {
+    return path; // Cannot determine on the server
+  }
+  return new URL(path, window.location.origin).href;
+};
 
 export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }: UseAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -31,10 +38,23 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
     autoplayRef.current = autoplay;
   }, [autoplay]);
 
+  const setMediaSession = useCallback(() => {
+    if ('mediaSession' in navigator && mediaMetadata) {
+      const artworkUrl = getAbsoluteUrl('/book-1283468.jpg');
+      navigator.mediaSession.metadata = new MediaMetadata({
+        ...mediaMetadata,
+        artwork: [
+          { src: artworkUrl, sizes: '180x180', type: 'image/jpeg' },
+          { src: artworkUrl, sizes: '512x512', type: 'image/jpeg' },
+        ]
+      });
+    }
+  }, [mediaMetadata]);
+
   const onPlay = () => {
     setIsPlaying(true);
-    if ('mediaSession' in navigator && mediaMetadata) {
-      navigator.mediaSession.metadata = new MediaMetadata(mediaMetadata);
+    setMediaSession();
+    if ('mediaSession' in navigator) {
       navigator.mediaSession.playbackState = 'playing';
     }
   };
@@ -142,7 +162,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
         navigator.mediaSession.setActionHandler('seekforward', null);
       }
     }
-  }, [seek]);
+  }, [seek, setMediaSession]);
   
   useEffect(() => {
     if (src && audioRef.current) {
@@ -170,10 +190,8 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
 
   useEffect(() => {
     // This effect ensures the metadata is updated if it changes
-    if ('mediaSession' in navigator && mediaMetadata) {
-        navigator.mediaSession.metadata = new MediaMetadata(mediaMetadata);
-    }
-  }, [mediaMetadata]);
+    setMediaSession();
+  }, [mediaMetadata, setMediaSession]);
 
   useEffect(() => {
     return () => {
