@@ -19,10 +19,9 @@ interface SurahBookViewProps {
 
 const AYAH_PER_PAGE = 10;
 
-// Component for a single page of the Quran
 function SurahPage({ ayahs, pageNumber, totalPages, surahName }: { ayahs: Ayah[], pageNumber: number, totalPages: number, surahName: string }) {
   return (
-    <div className="h-[80vh] w-full bg-[#fdfdf7] flex flex-col pt-6 border-2 border-amber-800/20 shadow-inner rounded-lg">
+    <div className="h-full w-full bg-[#fdfdf7] flex flex-col pt-6 border-2 border-amber-800/20 shadow-inner rounded-lg">
         <div className="flex justify-between items-center px-6 pb-2 border-b-2 border-amber-800/10">
             <h3 className="font-headline text-lg text-amber-900">{surahName}</h3>
             <p className="text-sm text-amber-900/70">Page {pageNumber} of {totalPages}</p>
@@ -51,24 +50,17 @@ export function SurahBookView({ ayahs, surahName }: SurahBookViewProps) {
   }
 
   return (
-    <div className="w-full relative py-4">
-        <style jsx global>{`
-          body {
-            background-image: url('/background-texture.png');
-            background-repeat: repeat;
-            background-color: #f0eade; /* A fallback color */
-          }
-        `}</style>
+    <div className="w-full h-screen relative bg-[#f0eade] flex items-center justify-center p-4">
       <Carousel
         opts={{
           align: "start",
           loop: false,
         }}
-        className="w-full max-w-4xl mx-auto"
+        className="w-full h-full max-w-4xl"
       >
-        <CarouselContent className="-ml-4">
+        <CarouselContent className="-ml-4 h-full">
           {pages.map((pageAyahs, index) => (
-             <CarouselItem key={index} className="pl-4">
+             <CarouselItem key={index} className="pl-4 h-full">
                 <SurahPage 
                   ayahs={pageAyahs} 
                   pageNumber={index + 1}
@@ -78,8 +70,8 @@ export function SurahBookView({ ayahs, surahName }: SurahBookViewProps) {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="absolute -left-4 md:-left-16 top-1/2 -translate-y-1/2 h-12 w-12 bg-primary/80 hover:bg-primary text-primary-foreground" />
-        <CarouselNext className="absolute -right-4 md:-right-16 top-1/2 -translate-y-1/2 h-12 w-12 bg-primary/80 hover:bg-primary text-primary-foreground" />
+        <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 h-12 w-12 bg-primary/80 hover:bg-primary text-primary-foreground disabled:opacity-30" />
+        <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 h-12 w-12 bg-primary/80 hover:bg-primary text-primary-foreground disabled:opacity-30" />
       </Carousel>
     </div>
   );

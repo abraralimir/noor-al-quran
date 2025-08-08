@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { SurahDetails } from '@/types/quran';
 import { AyahCard } from './AyahCard';
 import { SurahBookView } from './SurahBookView';
@@ -62,8 +62,9 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [showTranslation, setShowTranslation] = useState(true);
   const [isBookView, setIsBookView] = useState(false);
+  const bookViewRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsLoading(true);
     getSurah(surahNumber)
       .then(data => {
@@ -73,6 +74,28 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
       .catch(() => setIsLoading(false));
   }, [surahNumber]);
 
+  const handleFullscreenChange = () => {
+    if (!document.fullscreenElement) {
+      setIsBookView(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleBookView = async (checked: boolean) => {
+    setIsBookView(checked);
+    if (checked) {
+      await bookViewRef.current?.requestFullscreen();
+    } else {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      }
+    }
+  };
+  
   if (isLoading) {
     return <SurahDisplaySkeleton />;
   }
@@ -90,37 +113,36 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center space-x-4 justify-end mb-4 pr-4">
-        <div className="flex items-center space-x-2">
-            <Switch
-            id="book-view-toggle"
-            checked={isBookView}
-            onCheckedChange={setIsBookView}
-            />
-            <Label htmlFor="book-view-toggle" className="flex items-center gap-2 cursor-pointer">
-            <Book className="w-4 h-4" />
-            <span>Book View</span>
-            </Label>
+      {isBookView ? (
+        <div ref={bookViewRef}>
+            <SurahBookView ayahs={surah.ayahs} surahName={surah.englishName} />
         </div>
-        {!isBookView && (
+      ) : (
+        <>
+        <div className="flex items-center space-x-4 justify-end mb-4 pr-4">
             <div className="flex items-center space-x-2">
                 <Switch
-                id="translation-toggle"
-                checked={showTranslation}
-                onCheckedChange={setShowTranslation}
-                disabled={isBookView}
+                    id="book-view-toggle"
+                    checked={isBookView}
+                    onCheckedChange={toggleBookView}
                 />
-                <Label htmlFor="translation-toggle" className="flex items-center gap-2 cursor-pointer">
-                <BookText className="w-4 h-4" />
-                <span>Translation</span>
+                <Label htmlFor="book-view-toggle" className="flex items-center gap-2 cursor-pointer">
+                    <Book className="w-4 h-4" />
+                    <span>Book View</span>
                 </Label>
             </div>
-        )}
-      </div>
-
-      {isBookView ? (
-        <SurahBookView ayahs={surah.ayahs} surahName={surah.englishName} />
-      ) : (
+            <div className="flex items-center space-x-2">
+                <Switch
+                    id="translation-toggle"
+                    checked={showTranslation}
+                    onCheckedChange={setShowTranslation}
+                />
+                <Label htmlFor="translation-toggle" className="flex items-center gap-2 cursor-pointer">
+                    <BookText className="w-4 h-4" />
+                    <span>Translation</span>
+                </Label>
+            </div>
+        </div>
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -140,7 +162,9 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
             />
           </CardContent>
         </Card>
+        </>
       )}
     </div>
   );
 }
+
