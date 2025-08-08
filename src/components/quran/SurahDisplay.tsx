@@ -6,8 +6,7 @@ import type { SurahDetails, Ayah } from '@/types/quran';
 import { AyahCard } from './AyahCard';
 import { SurahBookView } from './SurahBookView';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { BookText, Book, Download, LoaderCircle } from 'lucide-react';
+import { BookText, Download, LoaderCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { getSurah } from '@/lib/quran-api';
 import React from 'react';
@@ -199,8 +198,8 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
                 // Add footer
                 pdf.setFontSize(10);
                 pdf.setTextColor(150);
-                pdf.text('by Noor Al Quran', 40, 1100);
-                pdf.textWithLink('https://noor-al-quran.vercel.app/', 760, 1100, { url: 'https://noor-al-quran.vercel.app/' });
+                pdf.text('by Noor Al Quran', 400, 1095, { align: 'center' });
+                pdf.textWithLink('https://noor-al-quran.vercel.app/', 400, 1110, { url: 'https://noor-al-quran.vercel.app/', align: 'center' });
                 
                 resolve();
             }, 100);
@@ -252,16 +251,10 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
               )}
               {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
             </Button>
-             <Button variant="outline" onClick={toggleBookView}>
-                <Book className="w-4 h-4 mr-2" />
+            <Button variant="outline" onClick={toggleBookView}>
+                <BookText className="w-4 h-4 mr-2" />
                 Book View
             </Button>
-            <div className="flex items-center space-x-2">
-                 <Label htmlFor="translation-toggle" className="flex items-center gap-2 cursor-pointer">
-                    <BookText className="w-4 h-4" />
-                    <span>Translation</span>
-                </Label>
-            </div>
         </div>
         <Card ref={printRef}>
           <CardHeader>
@@ -289,3 +282,4 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     </div>
   );
 }
+
