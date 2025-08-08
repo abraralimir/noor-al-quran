@@ -6,16 +6,11 @@ import { useToast } from '@/hooks/use-toast';
 interface UseAudioPlayerProps {
   src?: string;
   autoplay?: boolean;
-  mediaMetadata?: Omit<MediaMetadataInit, 'artwork'>; // Artwork will be handled internally
+  mediaMetadata?: Omit<MediaMetadataInit, 'artwork'>;
   onEnded?: () => void;
 }
 
-const getAbsoluteUrl = (path: string) => {
-  if (typeof window === 'undefined') {
-    return path; // Cannot determine on the server
-  }
-  return new URL(path, window.location.origin).href;
-};
+const artworkUrl = '/book-1283468.jpg'; // Simple, static absolute path
 
 export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }: UseAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -28,7 +23,6 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
 
-  // Keep the onEnded callback ref up to date
   useEffect(() => {
     onEndedRef.current = onEnded;
   }, [onEnded]);
@@ -39,7 +33,6 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
 
   const setMediaSession = useCallback(() => {
     if ('mediaSession' in navigator && mediaMetadata) {
-      const artworkUrl = getAbsoluteUrl('/book-1283468.jpg');
       navigator.mediaSession.metadata = new MediaMetadata({
         ...mediaMetadata,
         artwork: [
@@ -136,11 +129,15 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
     audio.addEventListener('error', onError);
 
     if ('mediaSession' in navigator) {
-        navigator.mediaSession.setActionHandler('play', () => audioRef.current?.play());
-        navigator.mediaSession.setActionHandler('pause', () => audioRef.current?.pause());
-        navigator.mediaSession.setActionHandler('seekbackward', () => seek(-10));
-        navigator.mediaSession.setActionHandler('seekforward', () => seek(10));
-        // Note: 'nexttrack' and 'previoustrack' would be handled by the component logic
+        const handlePlay = () => audioRef.current?.play().catch(onError);
+        const handlePause = () => audioRef.current?.pause();
+        const handleSeekBackward = () => seek(-10);
+        const handleSeekForward = () => seek(10);
+        
+        navigator.mediaSession.setActionHandler('play', handlePlay);
+        navigator.mediaSession.setActionHandler('pause', handlePause);
+        navigator.mediaSession.setActionHandler('seekbackward', handleSeekBackward);
+        navigator.mediaSession.setActionHandler('seekforward', handleSeekForward);
     }
     
     return () => {
@@ -172,9 +169,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
         setDuration(0);
         audioRef.current.src = src;
         audioRef.current.load();
-        // After source change, if autoplay is intended, onCanPlay will handle it.
       } else if (!isPlaying && autoplayRef.current) {
-        // If src is the same but we want to autoplay (e.g. re-adding the same song to queue)
         audioRef.current.play().catch(onError);
       }
     } else if (!src && audioRef.current) {
@@ -188,7 +183,6 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
   }, [src, isPlaying]);
 
   useEffect(() => {
-    // This effect ensures the metadata is updated if it changes
     setMediaSession();
   }, [mediaMetadata, setMediaSession]);
 

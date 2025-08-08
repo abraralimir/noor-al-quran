@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     description: 'An intuitive and serene experience designed for reflection and study of the Holy Quran.',
     images: [
       {
-        url: '/book-1283468.jpg',
+        url: '/book-1283468.jpg', // Using the absolute path from the public directory
         width: 1200,
         height: 630,
         alt: 'The Holy Quran on a decorated stand',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Noor Al Quran - Read, Listen, and Learn',
     description: 'An intuitive and serene experience designed for reflection and study of the Holy Quran.',
-    images: ['/book-1283468.jpg'],
+    images: ['/book-1283468.jpg'], // Using the absolute path
   },
   
   // Icons
@@ -51,8 +51,8 @@ export const metadata: Metadata = {
   // PWA & Theme
   manifest: '/manifest.webmanifest',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#E4ECEB' },
-    { media: '(prefers-color-scheme: dark)', color: '#1C2D2B' },
+    { media: '(prefers-color-scheme: light)', color: '#F5F5DC' },
+    { media: '(prefers-color-scheme: dark)', color: '#1A2E2B' },
   ],
 };
 

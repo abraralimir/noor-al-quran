@@ -1,11 +1,11 @@
 {
   "name": "Noor Al Quran",
   "short_name": "Noor Al Quran",
-  "description": "Read, Listen, and Learn the Holy Quran",
+  "description": "Read, listen, and learn the Holy Quran.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1C2D2B",
-  "theme_color": "#1C2D2B",
+  "background_color": "#F5F5DC",
+  "theme_color": "#008080",
   "icons": [
     {
       "src": "/book-1283468.jpg",
