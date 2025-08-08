@@ -11,25 +11,35 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { CardContent } from "@/components/ui/card";
-import React from 'react';
+import React, from 'react';
 import { Button } from '../ui/button';
-import { X } from 'lucide-react';
+import { Play, Pause, X } from 'lucide-react';
+import { getAyahAudioUrl } from '@/lib/quran-api';
 
 interface SurahPageProps {
   ayahs: Ayah[];
+  playingAyah: number | null;
+  onPlay: (ayahNumber: number) => void;
 }
 
-function SurahPage({ ayahs }: SurahPageProps) {
+function SurahPage({ ayahs, playingAyah, onPlay }: SurahPageProps) {
   return (
     <div className="h-full w-full bg-[#fdfdf7] flex flex-col p-4 border-2 border-amber-800/20 shadow-inner rounded-lg">
       <CardContent className="flex-1 overflow-y-auto p-4 lg:p-6 min-h-0">
-          <div dir="rtl" className="font-arabic text-3xl lg:text-4xl leading-loose lg:leading-loose text-amber-950 text-right">
+          <div dir="rtl" className="font-arabic text-3xl lg:text-4xl leading-loose lg:leading-loose text-amber-950 text-right w-full break-words">
           {ayahs.map((ayah) => (
               <React.Fragment key={ayah.number}>
                 {ayah.text}
                 <span className="text-xl font-mono text-accent bg-accent/10 rounded-full w-10 h-10 inline-flex items-center justify-center mx-2 align-middle">
                     {ayah.numberInSurah}
                 </span>
+                 <button
+                    onClick={() => onPlay(ayah.number)}
+                    aria-label={playingAyah === ayah.number ? "Pause recitation" : "Play recitation"}
+                    className="text-amber-900/70 hover:text-amber-900 inline-flex items-center justify-center align-middle w-10 h-10 rounded-full hover:bg-amber-800/10 transition-colors"
+                >
+                    {playingAyah === ayah.number ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                </button>
               </React.Fragment>
           ))}
           </div>
@@ -45,9 +55,46 @@ interface SurahBookViewProps {
 }
 
 export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) {
-  const [api, setApi] = React.useState<CarouselApi>()
-  const [current, setCurrent] = React.useState(0)
-  const [count, setCount] = React.useState(0)
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0);
+  const [count, setCount] = React.useState(0);
+  const [playingAyah, setPlayingAyah] = React.useState<number | null>(null);
+  
+  // Use a single, stable audio element instance. This is crucial for mobile compatibility.
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  React.useEffect(() => {
+    // Initialize audio element only once
+    if (!audioRef.current) {
+        audioRef.current = new Audio();
+    }
+    const audio = audioRef.current;
+
+    const handleEnded = () => setPlayingAyah(null);
+    audio.addEventListener('ended', handleEnded);
+
+    // Cleanup function
+    return () => {
+      audio.removeEventListener('ended', handleEnded);
+      audio.pause();
+    };
+  }, []);
+
+
+  const handlePlay = (ayahNumber: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (playingAyah === ayahNumber) {
+      audio.pause();
+      setPlayingAyah(null);
+    } else {
+      audio.src = getAyahAudioUrl(ayahNumber);
+      audio.play().catch(e => console.error("Audio play failed", e));
+      setPlayingAyah(ayahNumber);
+    }
+  };
+
 
   const pagesMap = ayahs.reduce((acc, ayah) => {
     const pageNumber = ayah.page;
@@ -107,6 +154,8 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
              <CarouselItem key={index} className="pl-4 basis-full">
                 <SurahPage 
                   ayahs={page.ayahs}
+                  playingAyah={playingAyah}
+                  onPlay={handlePlay}
                 />
             </CarouselItem>
           ))}
