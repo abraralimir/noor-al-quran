@@ -50,7 +50,7 @@ export function SurahBookView({ ayahs, surahName }: SurahBookViewProps) {
   }
 
   return (
-    <div className="w-full h-screen relative bg-[#f0eade] flex items-center justify-center p-4">
+    <div className="w-full h-full relative bg-[#f0eade] flex items-center justify-center p-4">
       <Carousel
         opts={{
           align: "start",

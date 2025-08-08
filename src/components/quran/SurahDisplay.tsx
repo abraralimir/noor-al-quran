@@ -62,7 +62,7 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [showTranslation, setShowTranslation] = useState(true);
   const [isBookView, setIsBookView] = useState(false);
-  const bookViewRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -86,16 +86,17 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   }, []);
 
   const toggleBookView = async (checked: boolean) => {
-    setIsBookView(checked);
     if (checked) {
-      await bookViewRef.current?.requestFullscreen();
+      setIsBookView(true);
+      await containerRef.current?.requestFullscreen();
     } else {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
       }
+      setIsBookView(false);
     }
   };
-  
+
   if (isLoading) {
     return <SurahDisplaySkeleton />;
   }
@@ -112,11 +113,9 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={containerRef}>
       {isBookView ? (
-        <div ref={bookViewRef}>
-            <SurahBookView ayahs={surah.ayahs} surahName={surah.englishName} />
-        </div>
+          <SurahBookView ayahs={surah.ayahs} surahName={surah.englishName} />
       ) : (
         <>
         <div className="flex items-center space-x-4 justify-end mb-4 pr-4">
@@ -167,4 +166,3 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     </div>
   );
 }
-
