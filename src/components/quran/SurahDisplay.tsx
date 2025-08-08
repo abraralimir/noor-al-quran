@@ -12,10 +12,50 @@ import { BookText, Book } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { getSurah } from '@/lib/quran-api';
 import React from 'react';
+import { Skeleton } from '../ui/skeleton';
 
 interface SurahDisplayProps {
   surahNumber: number;
 }
+
+function SurahDisplaySkeleton() {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <Skeleton className="h-10 w-48 mb-2" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <Skeleton className="h-10 w-24" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-end mb-6">
+            <Skeleton className="h-8 w-56" />
+          </div>
+          <Separator className="mb-6" />
+          <div className="space-y-6">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="space-y-4 py-4 border-b border-border last:border-b-0">
+                <div className="flex justify-between items-start gap-4">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="flex-grow space-y-2">
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-3/4" />
+                  </div>
+                </div>
+                <div className="pl-12">
+                   <Skeleton className="h-6 w-full" />
+                   <Skeleton className="h-6 w-1/2 mt-2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
 export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   const [surah, setSurah] = useState<SurahDetails | null>(null);
@@ -34,13 +74,7 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   }, [surahNumber]);
 
   if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Loading...</CardTitle>
-        </CardHeader>
-      </Card>
-    );
+    return <SurahDisplaySkeleton />;
   }
 
   if (!surah) {
@@ -52,6 +86,27 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
         </CardHeader>
       </Card>
     );
+  }
+
+  if (isBookView) {
+    return (
+        <div className="w-full">
+            <div className="flex items-center space-x-4 justify-end mb-4">
+                <div className="flex items-center space-x-2">
+                    <Switch
+                    id="book-view-toggle"
+                    checked={isBookView}
+                    onCheckedChange={setIsBookView}
+                    />
+                    <Label htmlFor="book-view-toggle" className="flex items-center gap-2 cursor-pointer">
+                    <Book className="w-4 h-4" />
+                    <span>Book View</span>
+                    </Label>
+                </div>
+            </div>
+            <SurahBookView ayahs={surah.ayahs} surahName={surah.englishName} />
+        </div>
+    )
   }
 
   return (
@@ -93,15 +148,11 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
         </div>
         <Separator className="mb-6" />
 
-        {isBookView ? (
-          <SurahBookView ayahs={surah.ayahs} />
-        ) : (
-          <AyahCard 
-            ayahs={surah.ayahs} 
-            surahNumber={surahNumber} 
-            showTranslation={showTranslation} 
-          />
-        )}
+        <AyahCard 
+          ayahs={surah.ayahs} 
+          surahNumber={surahNumber} 
+          showTranslation={showTranslation} 
+        />
       </CardContent>
     </Card>
   );
