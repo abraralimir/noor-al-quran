@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import type { SurahDetails } from '@/types/quran';
+import type { SurahDetails, Ayah } from '@/types/quran';
 import { AyahCard } from './AyahCard';
 import { SurahBookView } from './SurahBookView';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,35 @@ import html2canvas from 'html2canvas';
 interface SurahDisplayProps {
   surahNumber: number;
 }
+
+// A new component for rendering a single page for the PDF.
+// It's styled to look like the Book View. It will be rendered off-screen.
+const PrintablePage = React.forwardRef<HTMLDivElement, { pageAyahs: Ayah[]; surahName: string; pageNumber: number }>(({ pageAyahs, surahName, pageNumber }, ref) => {
+    return (
+        <div 
+            ref={ref}
+            className="w-[800px] h-[1130px] bg-[#fdfdf7] p-8 flex flex-col"
+            style={{ fontFamily: '"Traditional Arabic", serif' }}
+        >
+            <div className="flex justify-between items-center mb-4 text-amber-950">
+                <span className="text-lg">{`Page ${pageNumber}`}</span>
+                <h2 className="text-2xl font-bold">{surahName}</h2>
+            </div>
+            <div className="flex-grow text-right text-amber-950 text-4xl leading-loose break-words" dir="rtl">
+                {pageAyahs.map((ayah) => (
+                    <React.Fragment key={ayah.number}>
+                        {ayah.text}
+                        <span className="text-xl font-mono text-accent bg-accent/10 rounded-full w-10 h-10 inline-flex items-center justify-center mx-2 align-middle">
+                            {ayah.numberInSurah}
+                        </span>
+                    </React.Fragment>
+                ))}
+            </div>
+        </div>
+    );
+});
+PrintablePage.displayName = 'PrintablePage';
+
 
 function SurahDisplaySkeleton() {
     return (
@@ -68,6 +97,7 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
+  const printablePageRef = useRef<HTMLDivElement>(null);
 
 
   useEffect(() => {
@@ -93,46 +123,94 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   }, []);
 
   const toggleBookView = async () => {
+    const element = containerRef.current;
+    if (!element) return;
+
     if (!isBookView) {
-      if (containerRef.current) {
-        try {
-          await containerRef.current.requestFullscreen();
-          setIsBookView(true);
-        } catch (err) {
-          console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-          setIsBookView(true);
+        if (element.requestFullscreen) {
+            await element.requestFullscreen().catch(err => {
+              console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+              // Still enter book view even if fullscreen fails
+              setIsBookView(true);
+            });
         }
-      }
+        setIsBookView(true);
     } else {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      }
-      setIsBookView(false);
+        if (document.fullscreenElement) {
+            await document.exitFullscreen();
+        }
+        setIsBookView(false);
     }
   };
 
-  const handleDownloadPdf = async () => {
-    const contentToCapture = printRef.current;
-    if (!contentToCapture || !surah) return;
+    const handleDownloadPdf = async () => {
+    if (!surah) return;
 
     setIsGeneratingPdf(true);
 
     try {
-      const canvas = await html2canvas(contentToCapture, {
-        scale: 2, // Higher scale for better quality
-        useCORS: true, // Important for fonts and images
-        backgroundColor: '#ffffff',
-      });
+      const pagesMap = surah.ayahs.reduce((acc, ayah) => {
+        const pageNumber = ayah.page;
+        if (!acc[pageNumber]) {
+          acc[pageNumber] = [];
+        }
+        acc[pageNumber].push(ayah);
+        return acc;
+      }, {} as Record<number, Ayah[]>);
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: [canvas.width, canvas.height],
-      });
+      const pages = Object.entries(pagesMap).map(([pageNumber, pageAyahs]) => ({
+        pageNumber: parseInt(pageNumber, 10),
+        ayahs: pageAyahs,
+      }));
 
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      const pdf = new jsPDF('p', 'px', [800, 1130]);
+      const printNode = document.getElementById('print-container');
+
+      if (!printNode) {
+          console.error("Print container not found");
+          setIsGeneratingPdf(false);
+          return;
+      }
+
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+        
+        // This is a bit of a hack: we use React to render the component to a hidden div,
+        // then use that div for html2canvas. We need to import ReactDOM for this.
+        const ReactDOM = (await import('react-dom')).default;
+        
+        await new Promise<void>(resolve => {
+            ReactDOM.render(
+              <PrintablePage ref={printablePageRef} pageAyahs={page.ayahs} surahName={surah.englishName} pageNumber={page.pageNumber} />,
+              printNode,
+              async () => {
+                const canvas = await html2canvas(printNode as HTMLElement, {
+                  scale: 2,
+                  useCORS: true,
+                  backgroundColor: '#fdfdf7'
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                if (i > 0) {
+                  pdf.addPage();
+                }
+                pdf.addImage(imgData, 'PNG', 0, 0, 800, 1130);
+                
+                // Add footer
+                pdf.setFontSize(10);
+                pdf.setTextColor(150);
+                pdf.text('by Noor Al Quran', 40, 1100);
+                pdf.textWithLink('https://noor-al-quran.vercel.app/', 760, 1100, { url: 'https://noor-al-quran.vercel.app/' });
+
+                resolve();
+              }
+            );
+        });
+      }
+
       pdf.save(`Surah-${surah.englishName.replace(/\s/g, '_')}.pdf`);
+      ReactDOM.unmountComponentAtNode(printNode);
+
     } catch (error) {
       console.error("Failed to generate PDF", error);
     } finally {
@@ -156,20 +234,15 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     );
   }
 
-  if (isBookView) {
-    return (
-      <div ref={containerRef} className="w-full h-full bg-background">
+  return (
+    <div ref={containerRef} className="w-full h-full bg-background">
+      {isBookView ? (
         <SurahBookView 
           ayahs={surah.ayahs} 
           surahName={surah.englishName}
           onExit={toggleBookView}
         />
-      </div>
-    );
-  }
-
-  return (
-    <div ref={containerRef} className="w-full h-full bg-background">
+      ) : (
         <>
         <div className="flex items-center space-x-4 justify-end mb-4 pr-4">
             <Button variant="outline" onClick={handleDownloadPdf} disabled={isGeneratingPdf}>
@@ -215,7 +288,10 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
             />
           </CardContent>
         </Card>
+        {/* Hidden div for rendering printable pages */}
+        <div id="print-container" className="absolute -z-10 -top-[9999px] -left-[9999px]"></div>
         </>
+      )}
     </div>
   );
 }
