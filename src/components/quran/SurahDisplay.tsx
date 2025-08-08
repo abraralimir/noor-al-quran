@@ -8,12 +8,14 @@ import { SurahBookView } from './SurahBookView';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { BookText, Book, X, Maximize } from 'lucide-react';
+import { BookText, Book, Download, LoaderCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { getSurah } from '@/lib/quran-api';
 import React from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface SurahDisplayProps {
   surahNumber: number;
@@ -63,7 +65,10 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [showTranslation, setShowTranslation] = useState(true);
   const [isBookView, setIsBookView] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     setIsLoading(true);
@@ -95,7 +100,6 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
           setIsBookView(true);
         } catch (err) {
           console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-          // Fallback for browsers that don't support it, like Safari on iOS
           setIsBookView(true);
         }
       }
@@ -104,6 +108,35 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
         await document.exitFullscreen();
       }
       setIsBookView(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    const contentToCapture = printRef.current;
+    if (!contentToCapture || !surah) return;
+
+    setIsGeneratingPdf(true);
+
+    try {
+      const canvas = await html2canvas(contentToCapture, {
+        scale: 2, // Higher scale for better quality
+        useCORS: true, // Important for fonts and images
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(`Surah-${surah.englishName.replace(/\s/g, '_')}.pdf`);
+    } catch (error) {
+      console.error("Failed to generate PDF", error);
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -139,6 +172,14 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     <div ref={containerRef} className="w-full h-full bg-background">
         <>
         <div className="flex items-center space-x-4 justify-end mb-4 pr-4">
+            <Button variant="outline" onClick={handleDownloadPdf} disabled={isGeneratingPdf}>
+              {isGeneratingPdf ? (
+                <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
+              {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
+            </Button>
             <Button variant="outline" onClick={toggleBookView}>
                 <Book className="w-4 h-4 mr-2" />
                 Book View
@@ -155,7 +196,7 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
                 </Label>
             </div>
         </div>
-        <Card>
+        <Card ref={printRef}>
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
