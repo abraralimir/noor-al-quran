@@ -9,7 +9,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import React from 'react';
 
 interface SurahBookViewProps {
@@ -27,7 +27,7 @@ function SurahPage({ ayahs, pageNumber, totalPages, surahName }: { ayahs: Ayah[]
             <h3 className="font-headline text-lg text-amber-900">{surahName}</h3>
             <p className="text-sm text-amber-900/70">Page {pageNumber} of {totalPages}</p>
         </div>
-        <CardContent className="flex-grow overflow-y-auto p-6 lg:p-8">
+        <CardContent className="flex-grow overflow-hidden p-6 lg:p-8">
             <div dir="rtl" className="font-arabic text-3xl lg:text-4xl leading-loose lg:leading-loose text-amber-950 text-right">
             {ayahs.map((ayah) => (
                 <span key={ayah.number}>
@@ -64,11 +64,11 @@ export function SurahBookView({ ayahs, surahName }: SurahBookViewProps) {
           align: "start",
           loop: false,
         }}
-        className="w-full max-w-sm md:max-w-5xl mx-auto"
+        className="w-full max-w-2xl mx-auto"
       >
-        <CarouselContent className="-ml-2 md:-ml-4">
+        <CarouselContent className="-ml-4">
           {pages.map((pageAyahs, index) => (
-             <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2">
+             <CarouselItem key={index} className="pl-4">
                 <SurahPage 
                   ayahs={pageAyahs} 
                   pageNumber={index + 1}
@@ -78,16 +78,9 @@ export function SurahBookView({ ayahs, surahName }: SurahBookViewProps) {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <div className="hidden md:block">
-            <CarouselPrevious className="absolute -left-16 top-1/2 -translate-y-1/2 h-12 w-12 bg-primary/80 hover:bg-primary text-primary-foreground" />
-            <CarouselNext className="absolute -right-16 top-1/2 -translate-y-1/2 h-12 w-12 bg-primary/80 hover:bg-primary text-primary-foreground" />
-        </div>
-        <div className="md:hidden flex justify-center gap-8 mt-6">
-           <CarouselPrevious className="static translate-y-0 h-12 w-12" />
-           <CarouselNext className="static translate-y-0 h-12 w-12" />
-        </div>
+        <CarouselPrevious className="absolute -left-4 md:-left-16 top-1/2 -translate-y-1/2 h-12 w-12 bg-primary/80 hover:bg-primary text-primary-foreground" />
+        <CarouselNext className="absolute -right-4 md:-right-16 top-1/2 -translate-y-1/2 h-12 w-12 bg-primary/80 hover:bg-primary text-primary-foreground" />
       </Carousel>
     </div>
   );
 }
-
