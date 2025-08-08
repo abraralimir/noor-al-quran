@@ -5,6 +5,21 @@ import { SurahDisplay } from '@/components/quran/SurahDisplay';
 import { Sidebar, SidebarContent, SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Read the Quran | Noor Al Quran',
+  description: 'Immerse yourself in the Holy Quran. Read Surahs with a clean, readable interface and optional English translations. Navigate easily through all 114 chapters.',
+  openGraph: {
+    title: 'Read the Quran | Noor Al Quran',
+    description: 'Immerse yourself in the Holy Quran with a clean interface and English translations.',
+    url: '/read',
+  },
+  twitter: {
+    title: 'Read the Quran | Noor Al Quran',
+    description: 'Immerse yourself in the Holy Quran with a clean interface and English translations.',
+  },
+};
 
 export default async function ReadPage({
   searchParams,

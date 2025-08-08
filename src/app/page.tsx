@@ -20,8 +20,9 @@ export default function Home() {
       <section className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
         <Image
           src="/book-1283468.jpg"
-          alt="Quran on a stand"
+          alt="The Holy Quran on a decorated stand"
           fill
+          priority
           style={{ objectFit: 'cover' }}
           className="opacity-80"
         />

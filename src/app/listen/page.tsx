@@ -2,6 +2,21 @@ import { SurahAudioPlayer } from '@/components/quran/SurahAudioPlayer';
 import { getSurahs } from '@/lib/quran-api';
 import { Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Listen to the Quran | Noor Al Quran',
+  description: 'Experience the divine verses through beautiful audio recitations by Sheikh Mishary Rashid Alafasy. Create custom playlists and listen seamlessly.',
+  openGraph: {
+    title: 'Listen to the Quran | Noor Al Quran',
+    description: 'Experience beautiful audio recitations and create custom playlists.',
+    url: '/listen',
+  },
+  twitter: {
+    title: 'Listen to the Quran | Noor Al Quran',
+    description: 'Experience beautiful audio recitations and create custom playlists.',
+  },
+};
 
 export default async function ListenPage({
   searchParams,
