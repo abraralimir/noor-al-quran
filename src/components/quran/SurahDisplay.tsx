@@ -6,7 +6,6 @@ import type { SurahDetails, Ayah } from '@/types/quran';
 import { AyahCard } from './AyahCard';
 import { SurahBookView } from './SurahBookView';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { BookText, Book, Download, LoaderCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -171,20 +170,21 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
           setIsGeneratingPdf(false);
           return;
       }
+      
+      const { createRoot } = await import('react-dom/client');
+      const root = createRoot(printNode);
 
       for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
         
-        // This is a bit of a hack: we use React to render the component to a hidden div,
-        // then use that div for html2canvas. We need to import ReactDOM for this.
-        const ReactDOM = (await import('react-dom')).default;
-        
         await new Promise<void>(resolve => {
-            ReactDOM.render(
+            root.render(
               <PrintablePage ref={printablePageRef} pageAyahs={page.ayahs} surahName={surah.englishName} pageNumber={page.pageNumber} />,
-              printNode,
-              async () => {
-                const canvas = await html2canvas(printNode as HTMLElement, {
+            );
+            
+            // Allow time for render
+            setTimeout(async () => {
+                 const canvas = await html2canvas(printNode as HTMLElement, {
                   scale: 2,
                   useCORS: true,
                   backgroundColor: '#fdfdf7'
@@ -201,15 +201,14 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
                 pdf.setTextColor(150);
                 pdf.text('by Noor Al Quran', 40, 1100);
                 pdf.textWithLink('https://noor-al-quran.vercel.app/', 760, 1100, { url: 'https://noor-al-quran.vercel.app/' });
-
+                
                 resolve();
-              }
-            );
+            }, 100);
         });
       }
-
+      
+      root.unmount();
       pdf.save(`Surah-${surah.englishName.replace(/\s/g, '_')}.pdf`);
-      ReactDOM.unmountComponentAtNode(printNode);
 
     } catch (error) {
       console.error("Failed to generate PDF", error);
@@ -253,17 +252,12 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
               )}
               {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
             </Button>
-            <Button variant="outline" onClick={toggleBookView}>
+             <Button variant="outline" onClick={toggleBookView}>
                 <Book className="w-4 h-4 mr-2" />
                 Book View
             </Button>
             <div className="flex items-center space-x-2">
-                <Switch
-                    id="translation-toggle"
-                    checked={showTranslation}
-                    onCheckedChange={setShowTranslation}
-                />
-                <Label htmlFor="translation-toggle" className="flex items-center gap-2 cursor-pointer">
+                 <Label htmlFor="translation-toggle" className="flex items-center gap-2 cursor-pointer">
                     <BookText className="w-4 h-4" />
                     <span>Translation</span>
                 </Label>
