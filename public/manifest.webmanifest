@@ -1,0 +1,21 @@
+{
+  "name": "Noor Al Quran",
+  "short_name": "Noor Al Quran",
+  "description": "Your digital gateway to the Holy Quran. Read, listen, and learn with an intuitive and serene experience designed for reflection and study.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E4ECEB",
+  "theme_color": "#00695C",
+  "icons": [
+    {
+      "src": "/book-1283468.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/book-1283468.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

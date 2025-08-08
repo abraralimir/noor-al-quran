@@ -7,6 +7,7 @@ import { Footer } from '@/components/common/Footer';
 export const metadata: Metadata = {
   title: 'Noor Al Quran',
   description: 'A beautiful and easy-to-read Quran web app.',
+  manifest: '/manifest.webmanifest',
 };
 
 export default function RootLayout({
@@ -17,7 +18,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/book-1283468.jpg" sizes="any" />
+        <meta name="theme-color" content="#E4ECEB" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#1C2D2B" media="(prefers-color-scheme: dark)" />
+        <link rel="icon" href="/book-1283468.jpg" sizes="any" type="image/jpeg" />
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
+        <link rel="icon" href="/book-1283468.jpg" sizes="512x512" type="image/jpeg" />
         <link rel="apple-touch-icon" href="/book-1283468.jpg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
