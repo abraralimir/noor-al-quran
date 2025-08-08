@@ -14,6 +14,7 @@ interface UseAudioPlayerProps {
 export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }: UseAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const onEndedRef = useRef(onEnded);
+  const autoplayRef = useRef(autoplay);
   const { toast } = useToast();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -25,6 +26,10 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
   useEffect(() => {
     onEndedRef.current = onEnded;
   }, [onEnded]);
+  
+  useEffect(() => {
+    autoplayRef.current = autoplay;
+  }, [autoplay]);
 
   const onPlay = () => {
     setIsPlaying(true);
@@ -43,6 +48,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
 
   const handleEnded = () => {
     setIsPlaying(false);
+    setProgress(0);
     if (onEndedRef.current) {
       onEndedRef.current();
     }
@@ -70,7 +76,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
   
   const onCanPlay = () => {
     setIsLoading(false);
-    if (autoplay && audioRef.current?.paused) {
+    if (autoplayRef.current && audioRef.current?.paused) {
       audioRef.current.play().catch(onError);
     }
   };
@@ -148,12 +154,19 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
         audioRef.current.src = src;
         audioRef.current.load();
         // After source change, if autoplay is intended, onCanPlay will handle it.
+      } else if (!isPlaying && autoplayRef.current) {
+        // If src is the same but we want to autoplay (e.g. re-adding the same song to queue)
+        audioRef.current.play().catch(onError);
       }
     } else if (!src && audioRef.current) {
         audioRef.current.pause();
         audioRef.current.removeAttribute('src');
+        setProgress(0);
+        setDuration(0);
+        setIsPlaying(false);
+        setIsLoading(false);
     }
-  }, [src]);
+  }, [src, isPlaying]);
 
   useEffect(() => {
     // This effect ensures the metadata is updated if it changes
