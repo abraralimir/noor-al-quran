@@ -22,20 +22,20 @@ const AYAH_PER_PAGE = 10;
 // Component for a single page of the Quran
 function SurahPage({ ayahs, pageNumber, totalPages, surahName }: { ayahs: Ayah[], pageNumber: number, totalPages: number, surahName: string }) {
   return (
-    <div className="h-[75vh] w-full bg-[#fdfdf7] flex flex-col pt-6 border-2 border-amber-800/20 shadow-inner rounded-lg">
+    <div className="h-[80vh] w-full bg-[#fdfdf7] flex flex-col pt-6 border-2 border-amber-800/20 shadow-inner rounded-lg">
         <div className="flex justify-between items-center px-6 pb-2 border-b-2 border-amber-800/10">
             <h3 className="font-headline text-lg text-amber-900">{surahName}</h3>
             <p className="text-sm text-amber-900/70">Page {pageNumber} of {totalPages}</p>
         </div>
-        <CardContent className="flex-grow overflow-hidden p-6 lg:p-8">
+        <CardContent className="flex-grow overflow-auto p-6 lg:p-8">
             <div dir="rtl" className="font-arabic text-3xl lg:text-4xl leading-loose lg:leading-loose text-amber-950 text-right">
             {ayahs.map((ayah) => (
-                <span key={ayah.number}>
+                <React.Fragment key={ayah.number}>
                 {ayah.text}
-                <span className="text-sm font-mono text-accent bg-accent/10 rounded-full w-8 h-8 inline-flex items-center justify-center mx-1 align-middle">
+                <span className="text-xl font-mono text-accent bg-accent/10 rounded-full w-10 h-10 inline-flex items-center justify-center mx-2 align-middle">
                     {ayah.numberInSurah}
                 </span>
-                </span>
+                </React.Fragment>
             ))}
             </div>
         </CardContent>
@@ -64,7 +64,7 @@ export function SurahBookView({ ayahs, surahName }: SurahBookViewProps) {
           align: "start",
           loop: false,
         }}
-        className="w-full max-w-2xl mx-auto"
+        className="w-full max-w-4xl mx-auto"
       >
         <CarouselContent className="-ml-4">
           {pages.map((pageAyahs, index) => (
