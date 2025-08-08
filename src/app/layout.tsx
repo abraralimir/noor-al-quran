@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Header } from '@/components/common/Header';
 import { Footer } from '@/components/common/Footer';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://noor-al-quran.app';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://noor-al-quran.vercel.app';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
