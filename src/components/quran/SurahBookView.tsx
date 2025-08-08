@@ -59,36 +59,37 @@ interface SurahBookViewProps {
 export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) {
   const [api, setApi] = React.useState<CarouselApi>()
   const [current, setCurrent] = React.useState(0)
+  const [count, setCount] = React.useState(0)
   const [playingAyah, setPlayingAyah] = React.useState<number | null>(null);
-  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  
+  // Use a stable Audio object across renders. This is crucial for mobile.
+  const audioRef = React.useRef<HTMLAudioElement>(typeof Audio !== "undefined" ? new Audio() : null);
 
   const handlePlay = (ayahNumber: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    
     if (playingAyah === ayahNumber) {
-      audioRef.current?.pause();
+      audio.pause();
       setPlayingAyah(null);
     } else {
-      if (audioRef.current) {
-        audioRef.current.src = getAyahAudioUrl(ayahNumber);
-        audioRef.current.play().catch(e => console.error("Audio play failed", e));
-        setPlayingAyah(ayahNumber);
-      }
+      audio.src = getAyahAudioUrl(ayahNumber);
+      audio.play().catch(e => console.error("Audio play failed", e));
+      setPlayingAyah(ayahNumber);
     }
   };
 
   React.useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-    }
     const audio = audioRef.current;
+    if (!audio) return;
 
     const handleEnded = () => setPlayingAyah(null);
     audio.addEventListener('ended', handleEnded);
 
+    // Cleanup function to pause audio and remove listener when component unmounts
     return () => {
       audio.removeEventListener('ended', handleEnded);
-      if (audio) {
-          audio.pause();
-      }
+      audio.pause();
     };
   }, []);
 
@@ -111,14 +112,15 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
       return
     }
  
-    setCurrent(api.selectedScrollSnap())
+    setCount(api.scrollSnapList().length)
+    setCurrent(api.selectedScrollSnap() + 1)
  
     api.on("select", () => {
-      setCurrent(api.selectedScrollSnap())
+      setCurrent(api.selectedScrollSnap() + 1)
     })
   }, [api])
 
-  const currentPageNumber = pages[current]?.pageNumber;
+  const currentPageNumber = pages[current - 1]?.pageNumber;
 
 
   return (
@@ -144,7 +146,7 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
         }}
         className="w-full max-w-4xl"
       >
-        <CarouselContent className="h-[calc(100vh-4rem)]">
+        <CarouselContent className="h-[calc(100vh-3rem)]">
           {pages.map((page, index) => (
              <CarouselItem key={index} className="pl-4 basis-full">
                 <SurahPage 
