@@ -8,11 +8,12 @@ import { SurahBookView } from './SurahBookView';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { BookText, Book } from 'lucide-react';
+import { BookText, Book, X, Maximize } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { getSurah } from '@/lib/quran-api';
 import React from 'react';
 import { Skeleton } from '../ui/skeleton';
+import { Button } from '../ui/button';
 
 interface SurahDisplayProps {
   surahNumber: number;
@@ -74,11 +75,6 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
       .catch(() => setIsLoading(false));
   }, [surahNumber]);
 
-  const exitFullscreen = async () => {
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
-    }
-  };
 
   const handleFullscreenChange = () => {
     if (!document.fullscreenElement) {
@@ -91,22 +87,26 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  const toggleBookView = async (checked: boolean) => {
-    if (checked) {
-      if(containerRef.current) {
-         try {
-            await containerRef.current.requestFullscreen();
-            setIsBookView(true);
-         } catch(err) {
-            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-            setIsBookView(false);
-         }
+  const toggleBookView = async () => {
+    if (!isBookView) {
+      if (containerRef.current) {
+        try {
+          await containerRef.current.requestFullscreen();
+          setIsBookView(true);
+        } catch (err) {
+          console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+          // Fallback for browsers that don't support it, like Safari on iOS
+          setIsBookView(true);
+        }
       }
     } else {
-      await exitFullscreen();
-      setIsBookView(false); // Ensure state is synced on manual exit
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      }
+      setIsBookView(false);
     }
   };
+
 
   if (isLoading) {
     return <SurahDisplaySkeleton />;
@@ -123,28 +123,26 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     );
   }
 
+  if (isBookView) {
+    return (
+      <div ref={containerRef} className="w-full h-full bg-background">
+        <SurahBookView 
+          ayahs={surah.ayahs} 
+          surahName={surah.englishName}
+          onExit={toggleBookView}
+        />
+      </div>
+    );
+  }
+
   return (
     <div ref={containerRef} className="w-full h-full bg-background">
-      {isBookView && surah.ayahs ? (
-          <SurahBookView 
-            ayahs={surah.ayahs} 
-            surahName={surah.englishName}
-            onExit={() => toggleBookView(false)}
-          />
-      ) : (
         <>
         <div className="flex items-center space-x-4 justify-end mb-4 pr-4">
-            <div className="flex items-center space-x-2">
-                <Switch
-                    id="book-view-toggle"
-                    checked={isBookView}
-                    onCheckedChange={toggleBookView}
-                />
-                <Label htmlFor="book-view-toggle" className="flex items-center gap-2 cursor-pointer">
-                    <Book className="w-4 h-4" />
-                    <span>Book View</span>
-                </Label>
-            </div>
+            <Button variant="outline" onClick={toggleBookView}>
+                <Book className="w-4 h-4 mr-2" />
+                Book View
+            </Button>
             <div className="flex items-center space-x-2">
                 <Switch
                     id="translation-toggle"
@@ -177,8 +175,6 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
           </CardContent>
         </Card>
         </>
-      )}
     </div>
   );
 }
-
