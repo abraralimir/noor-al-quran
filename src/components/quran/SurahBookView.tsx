@@ -13,16 +13,13 @@ import {
 import { CardContent } from "@/components/ui/card";
 import React from 'react';
 import { Button } from '../ui/button';
-import { Play, Pause, X } from 'lucide-react';
-import { getAyahAudioUrl } from '@/lib/quran-api';
+import { X } from 'lucide-react';
 
 interface SurahPageProps {
   ayahs: Ayah[];
-  playingAyah: number | null;
-  onPlay: (ayahNumber: number) => void;
 }
 
-function SurahPage({ ayahs, playingAyah, onPlay }: SurahPageProps) {
+function SurahPage({ ayahs }: SurahPageProps) {
   return (
     <div className="h-full w-full bg-[#fdfdf7] flex flex-col p-4 border-2 border-amber-800/20 shadow-inner rounded-lg">
       <CardContent className="flex-1 overflow-y-auto p-4 lg:p-6 min-h-0">
@@ -33,15 +30,6 @@ function SurahPage({ ayahs, playingAyah, onPlay }: SurahPageProps) {
                 <span className="text-xl font-mono text-accent bg-accent/10 rounded-full w-10 h-10 inline-flex items-center justify-center mx-2 align-middle">
                     {ayah.numberInSurah}
                 </span>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onPlay(ayah.number)}
-                    className="text-accent hover:text-accent hover:bg-accent/10 rounded-full h-10 w-10 inline-flex items-center justify-center align-middle"
-                    aria-label={playingAyah === ayah.number ? "Pause recitation" : "Play recitation"}
-                >
-                    {playingAyah === ayah.number ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                </Button>
               </React.Fragment>
           ))}
           </div>
@@ -60,38 +48,6 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
   const [api, setApi] = React.useState<CarouselApi>()
   const [current, setCurrent] = React.useState(0)
   const [count, setCount] = React.useState(0)
-  const [playingAyah, setPlayingAyah] = React.useState<number | null>(null);
-  
-  // Use a stable Audio object across renders. This is crucial for mobile.
-  const audioRef = React.useRef<HTMLAudioElement>(typeof Audio !== "undefined" ? new Audio() : null);
-
-  const handlePlay = (ayahNumber: number) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    
-    if (playingAyah === ayahNumber) {
-      audio.pause();
-      setPlayingAyah(null);
-    } else {
-      audio.src = getAyahAudioUrl(ayahNumber);
-      audio.play().catch(e => console.error("Audio play failed", e));
-      setPlayingAyah(ayahNumber);
-    }
-  };
-
-  React.useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleEnded = () => setPlayingAyah(null);
-    audio.addEventListener('ended', handleEnded);
-
-    // Cleanup function to pause audio and remove listener when component unmounts
-    return () => {
-      audio.removeEventListener('ended', handleEnded);
-      audio.pause();
-    };
-  }, []);
 
   const pagesMap = ayahs.reduce((acc, ayah) => {
     const pageNumber = ayah.page;
@@ -151,8 +107,6 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
              <CarouselItem key={index} className="pl-4 basis-full">
                 <SurahPage 
                   ayahs={page.ayahs}
-                  playingAyah={playingAyah}
-                  onPlay={handlePlay}
                 />
             </CarouselItem>
           ))}
