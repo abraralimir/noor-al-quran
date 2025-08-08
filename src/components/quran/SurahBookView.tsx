@@ -23,8 +23,9 @@ interface SurahBookViewProps {
 
 function SurahPage({ ayahs }: { ayahs: Ayah[] }) {
   return (
-    <div className="h-full w-full bg-[#fdfdf7] flex flex-col pt-16 p-4 border-2 border-amber-800/20 shadow-inner rounded-lg relative">
-        <CardContent className="flex-grow overflow-y-auto p-4 lg:p-6">
+    <div className="h-full w-full bg-[#fdfdf7] flex flex-col p-4 border-2 border-amber-800/20 shadow-inner rounded-lg relative">
+        {/* The key change is adding min-h-0 to the flex child (CardContent) to make overflow-y-auto work */}
+        <CardContent className="flex-grow overflow-y-auto p-4 lg:p-6 min-h-0">
             <div dir="rtl" className="font-arabic text-3xl lg:text-4xl leading-loose lg:leading-loose text-amber-950 text-right">
             {ayahs.map((ayah) => (
                 <React.Fragment key={ayah.number}>
@@ -75,7 +76,7 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
 
 
   return (
-    <div className="w-full h-screen relative bg-[#f0eade] flex items-center justify-center p-4">
+    <div className="w-full h-screen relative bg-[#f0eade] flex flex-col items-center justify-center p-4">
         <div className="absolute top-0 left-0 right-0 z-20 bg-black/10 backdrop-blur-sm p-2 flex justify-between items-center text-white">
             <div className="text-sm font-bold w-1/3 text-left">
               {currentPageNumber ? `Page ${currentPageNumber}` : ''}
@@ -95,11 +96,11 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
           align: "start",
           loop: false,
         }}
-        className="w-full h-full max-w-4xl"
+        className="w-full h-full max-w-4xl py-12"
       >
-        <CarouselContent className="-ml-4">
+        <CarouselContent className="h-full">
           {pages.map((page, index) => (
-             <CarouselItem key={index} className="pl-4">
+             <CarouselItem key={index} className="h-full">
                 <SurahPage 
                   ayahs={page.ayahs} 
                 />
@@ -112,4 +113,3 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
     </div>
   );
 }
-
