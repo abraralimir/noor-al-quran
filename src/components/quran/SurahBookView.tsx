@@ -76,7 +76,6 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
   };
 
   React.useEffect(() => {
-    // Initialize audio element only once
     if (!audioRef.current) {
       audioRef.current = new Audio();
     }
@@ -85,16 +84,14 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
     const handleEnded = () => setPlayingAyah(null);
     audio.addEventListener('ended', handleEnded);
 
-    // Cleanup function to remove event listener and pause audio
     return () => {
       audio.removeEventListener('ended', handleEnded);
       if (audio) {
           audio.pause();
       }
     };
-  }, []); // Empty dependency array ensures this runs only once on mount and unmount
+  }, []);
 
-  // Group ayahs by their actual Quran page number
   const pagesMap = ayahs.reduce((acc, ayah) => {
     const pageNumber = ayah.page;
     if (!acc[pageNumber]) {
@@ -145,7 +142,7 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
           align: "start",
           loop: false,
         }}
-        className="w-full max-w-4xl pt-12"
+        className="w-full max-w-4xl"
       >
         <CarouselContent className="h-[calc(100vh-4rem)]">
           {pages.map((page, index) => (
