@@ -74,6 +74,13 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
       .catch(() => setIsLoading(false));
   }, [surahNumber]);
 
+  const exitFullscreen = async () => {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    }
+    setIsBookView(false);
+  };
+
   const handleFullscreenChange = () => {
     if (!document.fullscreenElement) {
       setIsBookView(false);
@@ -88,12 +95,12 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   const toggleBookView = async (checked: boolean) => {
     if (checked) {
       setIsBookView(true);
-      await containerRef.current?.requestFullscreen();
+      await containerRef.current?.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+        setIsBookView(false);
+      });
     } else {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      }
-      setIsBookView(false);
+      await exitFullscreen();
     }
   };
 
@@ -113,9 +120,13 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   }
 
   return (
-    <div className="w-full" ref={containerRef}>
+    <div ref={containerRef} className="w-full h-full">
       {isBookView ? (
-          <SurahBookView ayahs={surah.ayahs} surahName={surah.englishName} />
+          <SurahBookView 
+            ayahs={surah.ayahs} 
+            surahName={surah.englishName}
+            onExit={() => toggleBookView(false)}
+          />
       ) : (
         <>
         <div className="flex items-center space-x-4 justify-end mb-4 pr-4">

@@ -8,25 +8,25 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { CardContent } from "@/components/ui/card";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Button } from '../ui/button';
+import { X } from 'lucide-react';
 
 interface SurahBookViewProps {
   ayahs: Ayah[];
   surahName: string;
+  onExit: () => void;
 }
 
 const AYAH_PER_PAGE = 10;
 
 function SurahPage({ ayahs, pageNumber, totalPages, surahName }: { ayahs: Ayah[], pageNumber: number, totalPages: number, surahName: string }) {
   return (
-    <div className="h-full w-full bg-[#fdfdf7] flex flex-col pt-6 border-2 border-amber-800/20 shadow-inner rounded-lg">
-        <div className="flex justify-between items-center px-6 pb-2 border-b-2 border-amber-800/10">
-            <h3 className="font-headline text-lg text-amber-900">{surahName}</h3>
-            <p className="text-sm text-amber-900/70">Page {pageNumber} of {totalPages}</p>
-        </div>
-        <CardContent className="flex-grow overflow-auto p-6 lg:p-8">
+    <div className="h-full w-full bg-[#fdfdf7] flex flex-col pt-16 border-2 border-amber-800/20 shadow-inner rounded-lg relative">
+        <CardContent className="flex-grow overflow-y-auto p-6 lg:p-8">
             <div dir="rtl" className="font-arabic text-3xl lg:text-4xl leading-loose lg:leading-loose text-amber-950 text-right">
             {ayahs.map((ayah) => (
                 <React.Fragment key={ayah.number}>
@@ -42,16 +42,43 @@ function SurahPage({ ayahs, pageNumber, totalPages, surahName }: { ayahs: Ayah[]
   )
 }
 
-export function SurahBookView({ ayahs, surahName }: SurahBookViewProps) {
-  const pages = [];
+export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) {
+  const [api, setApi] = useState<CarouselApi>()
+  const [current, setCurrent] = useState(0)
+  const [count, setCount] = useState(0)
 
+  const pages = [];
   for (let i = 0; i < ayahs.length; i += AYAH_PER_PAGE) {
     pages.push(ayahs.slice(i, i + AYAH_PER_PAGE));
   }
+ 
+  useEffect(() => {
+    if (!api) {
+      return
+    }
+ 
+    setCount(api.scrollSnapList().length)
+    setCurrent(api.selectedScrollSnap() + 1)
+ 
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1)
+    })
+  }, [api])
+
 
   return (
     <div className="w-full h-full relative bg-[#f0eade] flex items-center justify-center p-4">
+        <div className="absolute top-0 left-0 right-0 z-10 bg-black/10 backdrop-blur-sm p-2 flex justify-between items-center text-white">
+            <div className="text-sm font-bold">Page {current} of {count}</div>
+            <h2 className="text-lg font-headline font-bold">{surahName}</h2>
+            <Button variant="ghost" size="icon" onClick={onExit} className="hover:bg-white/20">
+                <X className="w-5 h-5"/>
+                <span className="sr-only">Exit Book View</span>
+            </Button>
+        </div>
+
       <Carousel
+        setApi={setApi}
         opts={{
           align: "start",
           loop: false,
