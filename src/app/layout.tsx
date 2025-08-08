@@ -13,7 +13,6 @@ export const metadata: Metadata = {
     template: '%s | Noor Al Quran',
   },
   description: 'Your digital gateway to the Holy Quran. Read, listen, and learn with an intuitive and serene experience designed for reflection and study.',
-  manifest: '/manifest.webmanifest',
   keywords: ['Quran', 'Islam', 'Holy Book', 'Recitation', 'Learn Quran', 'Islamic App', 'Noor Al Quran', 'Tafsir', 'Hadith'],
   authors: [{ name: 'Noor Al Quran Team', url: siteUrl }],
   creator: 'Noor Al Quran Team',
@@ -21,7 +20,7 @@ export const metadata: Metadata = {
   // Open Graph (for Facebook, WhatsApp, etc.)
   openGraph: {
     type: 'website',
-    url: siteUrl,
+    url: '/',
     title: 'Noor Al Quran - Read, Listen, and Learn',
     description: 'An intuitive and serene experience designed for reflection and study of the Holy Quran.',
     images: [
@@ -40,8 +39,21 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Noor Al Quran - Read, Listen, and Learn',
     description: 'An intuitive and serene experience designed for reflection and study of the Holy Quran.',
-    images: [`${siteUrl}/book-1283468.jpg`],
+    images: ['/book-1283468.jpg'],
   },
+  
+  // Icons
+  icons: {
+    icon: '/book-1283468.jpg',
+    apple: '/book-1283468.jpg',
+  },
+
+  // PWA & Theme
+  manifest: '/manifest.webmanifest',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#E4ECEB' },
+    { media: '(prefers-color-scheme: dark)', color: '#1C2D2B' },
+  ],
 };
 
 export default function RootLayout({
@@ -52,10 +64,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="theme-color" content="#E4ECEB" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#1C2D2B" media="(prefers-color-scheme: dark)" />
-        <link rel="icon" href="/book-1283468.jpg" type="image/jpeg" sizes="any" />
-        <link rel="apple-touch-icon" href="/book-1283468.jpg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400..900;1,400..900&family=Source+Code+Pro:ital,wght@0,200..900&display=swap" rel="stylesheet" />
