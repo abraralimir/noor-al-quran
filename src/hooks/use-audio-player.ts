@@ -6,11 +6,12 @@ import { useToast } from '@/hooks/use-toast';
 interface UseAudioPlayerProps {
   src?: string;
   autoplay?: boolean;
-  mediaMetadata?: Omit<MediaMetadataInit, 'artwork'>;
+  mediaMetadata?: MediaMetadataInit;
   onEnded?: () => void;
 }
 
-const artworkUrl = '/book-1283468.jpg'; // Simple, static absolute path
+// Absolute path to the image in the /public directory
+const artworkUrl = '/book-1283468.jpg'; 
 
 export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }: UseAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);

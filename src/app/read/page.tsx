@@ -5,21 +5,54 @@ import { SurahDisplay } from '@/components/quran/SurahDisplay';
 import { Sidebar, SidebarContent, SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Metadata } from 'next';
+import { Metadata, ResolvingMetadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Read the Quran | Noor Al Quran',
-  description: 'Immerse yourself in the Holy Quran. Read Surahs with a clean, readable interface and optional English translations. Navigate easily through all 114 chapters.',
-  openGraph: {
-    title: 'Read the Quran | Noor Al Quran',
-    description: 'Immerse yourself in the Holy Quran with a clean interface and English translations.',
-    url: '/read',
-  },
-  twitter: {
-    title: 'Read the Quran | Noor Al Quran',
-    description: 'Immerse yourself in the Holy Quran with a clean interface and English translations.',
-  },
-};
+type Props = {
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export async function generateMetadata(
+  { searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const surahNumber = searchParams?.surah ? Number(searchParams.surah) : 1;
+  const surahs = await getSurahs();
+  const surah = surahs.find(s => s.number === surahNumber);
+
+  if (surah) {
+    const title = `Read Surah ${surah.englishName}`;
+    const description = `Immerse yourself in the Holy Quran. Read Surah ${surah.englishName} with a clean, readable interface and optional English translations.`;
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        url: `/read?surah=${surahNumber}`,
+      },
+      twitter: {
+        title,
+        description,
+      },
+    };
+  }
+
+  // Default metadata
+  return {
+    title: 'Read the Quran',
+    description: 'Immerse yourself in the Holy Quran. Read Surahs with a clean, readable interface and optional English translations. Navigate easily through all 114 chapters.',
+    openGraph: {
+      title: 'Read the Quran',
+      description: 'Immerse yourself in the Holy Quran with a clean interface and English translations.',
+      url: '/read',
+    },
+    twitter: {
+      title: 'Read the Quran',
+      description: 'Immerse yourself in the Holy Quran with a clean interface and English translations.',
+    },
+  };
+}
+
 
 export default async function ReadPage({
   searchParams,
