@@ -35,7 +35,13 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     handleSliderChange,
     formatTime 
   } = useAudioPlayer({ 
-    src: audioUrl, 
+    src: audioUrl,
+    mediaMetadata: selectedSurah ? {
+        title: `Surah ${selectedSurah.englishName}`,
+        artist: 'Mishary Rashid Alafasy',
+        album: 'Noor Al Quran',
+        artwork: [{ src: '/book-1283468.jpg', sizes: '512x512', type: 'image/jpeg' }]
+    } : undefined,
     autoplay: !!initialSurahNumber 
   });
 

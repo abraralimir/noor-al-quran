@@ -6,9 +6,10 @@ import { useToast } from '@/hooks/use-toast';
 interface UseAudioPlayerProps {
   src?: string;
   autoplay?: boolean;
+  mediaMetadata?: MediaMetadataInit;
 }
 
-export function useAudioPlayer({ src, autoplay = false }: UseAudioPlayerProps) {
+export function useAudioPlayer({ src, autoplay = false, mediaMetadata }: UseAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
@@ -42,12 +43,30 @@ export function useAudioPlayer({ src, autoplay = false }: UseAudioPlayerProps) {
     }
   }, []);
 
-  const onPlay = () => setIsPlaying(true);
-  const onPause = () => setIsPlaying(false);
+  const onPlay = () => {
+    setIsPlaying(true);
+    if ('mediaSession' in navigator && mediaMetadata) {
+      navigator.mediaSession.metadata = new MediaMetadata(mediaMetadata);
+      navigator.mediaSession.playbackState = 'playing';
+    }
+  };
+  const onPause = () => {
+    setIsPlaying(false);
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+    }
+  };
   const onEnded = () => setIsPlaying(false);
   const onTimeUpdate = () => {
     if (audioRef.current) {
       setProgress(audioRef.current.currentTime);
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setPositionState?.({
+            duration: audioRef.current.duration,
+            playbackRate: audioRef.current.playbackRate,
+            position: audioRef.current.currentTime,
+        });
+      }
     }
   };
   const onDurationChange = () => {
@@ -78,6 +97,12 @@ export function useAudioPlayer({ src, autoplay = false }: UseAudioPlayerProps) {
         audioRef.current = new Audio();
     }
     setupAudio();
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => audioRef.current?.play());
+        navigator.mediaSession.setActionHandler('pause', () => audioRef.current?.pause());
+        navigator.mediaSession.setActionHandler('seekbackward', () => seek(-10));
+        navigator.mediaSession.setActionHandler('seekforward', () => seek(10));
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
@@ -102,6 +127,9 @@ export function useAudioPlayer({ src, autoplay = false }: UseAudioPlayerProps) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
+      }
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = null;
       }
     };
   }, []);
