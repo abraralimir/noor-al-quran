@@ -21,8 +21,6 @@ interface SurahBookViewProps {
   onExit: () => void;
 }
 
-const AYAH_PER_PAGE = 10;
-
 function SurahPage({ ayahs }: { ayahs: Ayah[] }) {
   return (
     <div className="h-full w-full bg-[#fdfdf7] flex flex-col pt-16 p-4 border-2 border-amber-800/20 shadow-inner rounded-lg relative">
@@ -45,31 +43,43 @@ function SurahPage({ ayahs }: { ayahs: Ayah[] }) {
 export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
-  const [count, setCount] = useState(0)
 
-  const pages = [];
-  for (let i = 0; i < ayahs.length; i += AYAH_PER_PAGE) {
-    pages.push(ayahs.slice(i, i + AYAH_PER_PAGE));
-  }
+  // Group ayahs by their actual Quran page number
+  const pagesMap = ayahs.reduce((acc, ayah) => {
+    const pageNumber = ayah.page;
+    if (!acc[pageNumber]) {
+      acc[pageNumber] = [];
+    }
+    acc[pageNumber].push(ayah);
+    return acc;
+  }, {} as Record<number, Ayah[]>);
+
+  const pages = Object.entries(pagesMap).map(([pageNumber, pageAyahs]) => ({
+    pageNumber: parseInt(pageNumber, 10),
+    ayahs: pageAyahs,
+  }));
  
   useEffect(() => {
     if (!api) {
       return
     }
  
-    setCount(api.scrollSnapList().length)
-    setCurrent(api.selectedScrollSnap() + 1)
+    setCurrent(api.selectedScrollSnap())
  
     api.on("select", () => {
-      setCurrent(api.selectedScrollSnap() + 1)
+      setCurrent(api.selectedScrollSnap())
     })
   }, [api])
 
+  const currentPageNumber = pages[current]?.pageNumber;
+
 
   return (
-    <div className="w-full h-full relative bg-[#f0eade] flex items-center justify-center p-4">
+    <div className="w-full h-screen relative bg-[#f0eade] flex items-center justify-center p-4">
         <div className="absolute top-0 left-0 right-0 z-20 bg-black/10 backdrop-blur-sm p-2 flex justify-between items-center text-white">
-            <div className="text-sm font-bold w-1/3 text-left">Page {current} of {count}</div>
+            <div className="text-sm font-bold w-1/3 text-left">
+              {currentPageNumber ? `Page ${currentPageNumber}` : ''}
+            </div>
             <h2 className="text-lg font-headline font-bold w-1/3 text-center">{surahName}</h2>
             <div className="w-1/3 flex justify-end">
                 <Button variant="ghost" size="sm" onClick={onExit} className="hover:bg-white/20">
@@ -88,10 +98,10 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
         className="w-full h-full max-w-4xl"
       >
         <CarouselContent className="-ml-4">
-          {pages.map((pageAyahs, index) => (
-             <CarouselItem key={index} className="pl-4 h-full">
+          {pages.map((page, index) => (
+             <CarouselItem key={index} className="pl-4">
                 <SurahPage 
-                  ayahs={pageAyahs} 
+                  ayahs={page.ayahs} 
                 />
             </CarouselItem>
           ))}

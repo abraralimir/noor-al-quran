@@ -78,7 +78,6 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     if (document.fullscreenElement) {
       await document.exitFullscreen();
     }
-    setIsBookView(false);
   };
 
   const handleFullscreenChange = () => {
@@ -94,13 +93,18 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
 
   const toggleBookView = async (checked: boolean) => {
     if (checked) {
-      setIsBookView(true);
-      await containerRef.current?.requestFullscreen().catch(err => {
-        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-        setIsBookView(false);
-      });
+      if(containerRef.current) {
+         try {
+            await containerRef.current.requestFullscreen();
+            setIsBookView(true);
+         } catch(err) {
+            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            setIsBookView(false);
+         }
+      }
     } else {
       await exitFullscreen();
+      setIsBookView(false); // Ensure state is synced on manual exit
     }
   };
 
@@ -120,8 +124,8 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
   }
 
   return (
-    <div ref={containerRef} className="w-full h-full">
-      {isBookView ? (
+    <div ref={containerRef} className="w-full h-full bg-background">
+      {isBookView && surah.ayahs ? (
           <SurahBookView 
             ayahs={surah.ayahs} 
             surahName={surah.englishName}
@@ -177,3 +181,4 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     </div>
   );
 }
+
