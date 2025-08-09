@@ -14,6 +14,7 @@ interface UseAudioPlayerProps {
 const artworkUrl = '/book-1920.jpg'; 
 
 export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }: UseAudioPlayerProps) {
+  // Ensure Audio object is only created on the client
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const onEndedRef = useRef(onEnded);
   const autoplayRef = useRef(autoplay);
@@ -43,67 +44,16 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
     }
   }, [mediaMetadata]);
 
-  const onPlay = () => {
-    setIsPlaying(true);
-    setMediaSession();
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = 'playing';
-    }
-  };
-
-  const onPause = () => {
-    setIsPlaying(false);
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = 'paused';
-    }
-  };
-
-  const handleEnded = () => {
-    setIsPlaying(false);
-    setProgress(0);
-    if (onEndedRef.current) {
-      onEndedRef.current();
-    }
-  };
-
-  const onTimeUpdate = () => {
-    if (audioRef.current) {
-      setProgress(audioRef.current.currentTime);
-      if ('mediaSession' in navigator && isFinite(audioRef.current.duration)) {
-        navigator.mediaSession.setPositionState?.({
-          duration: audioRef.current.duration,
-          playbackRate: audioRef.current.playbackRate,
-          position: audioRef.current.currentTime,
-        });
-      }
-    }
-  };
-
-  const onDurationChange = () => {
-    if (audioRef.current && isFinite(audioRef.current.duration)) {
-      setDuration(audioRef.current.duration);
-      setIsLoading(false);
-    }
-  };
-  
-  const onCanPlay = () => {
-    setIsLoading(false);
-    if (autoplayRef.current && audioRef.current?.paused) {
+  // Player actions
+  const play = useCallback(() => {
+    if (audioRef.current?.src) {
       audioRef.current.play().catch(onError);
     }
-  };
+  }, []);
 
-  const onWaiting = () => setIsLoading(true);
-
-  const onError = () => {
-    setIsLoading(false);
-    setIsPlaying(false);
-    toast({
-      variant: 'destructive',
-      title: 'Audio Error',
-      description: 'Could not load the audio. Please try another Surah or check your connection.',
-    });
-  };
+  const pause = useCallback(() => {
+    audioRef.current?.pause();
+  }, []);
 
   const seek = useCallback((seconds: number) => {
     if (audioRef.current && isFinite(audioRef.current.duration)) {
@@ -111,13 +61,89 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
       audioRef.current.currentTime = Math.max(0, Math.min(audioRef.current.duration, newTime));
     }
   }, []);
-  
+
+  const togglePlayPause = () => {
+    if (audioRef.current && audioRef.current.src) {
+      if (isPlaying) {
+        pause();
+      } else {
+        play();
+      }
+    }
+  };
+
+  const handleSliderChange = (value: number[]) => {
+    if (audioRef.current && isFinite(audioRef.current.duration)) {
+      audioRef.current.currentTime = value[0];
+      setProgress(value[0]);
+    }
+  };
+
+  // Event handlers
+  const onError = useCallback(() => {
+    setIsLoading(false);
+    setIsPlaying(false);
+    toast({
+      variant: 'destructive',
+      title: 'Audio Error',
+      description: 'Could not load the audio. Please try another Surah or check your connection.',
+    });
+  }, [toast]);
+
+  // Effect to initialize and manage audio element and its listeners
   useEffect(() => {
     if (!audioRef.current) {
         audioRef.current = new Audio();
     }
     const audio = audioRef.current;
+
+    const onPlay = () => {
+      setIsPlaying(true);
+      setMediaSession();
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+    };
+
+    const onPause = () => {
+      setIsPlaying(false);
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setProgress(0);
+      onEndedRef.current?.();
+    };
+
+    const onTimeUpdate = () => {
+      if (audio.duration) { // only update if duration is available
+          setProgress(audio.currentTime);
+          if ('mediaSession' in navigator && isFinite(audio.duration)) {
+            navigator.mediaSession.setPositionState?.({
+              duration: audio.duration,
+              playbackRate: audio.playbackRate,
+              position: audio.currentTime,
+            });
+          }
+      }
+    };
+
+    const onDurationChange = () => {
+        if (isFinite(audio.duration)) {
+            setDuration(audio.duration);
+            setIsLoading(false);
+        }
+    };
     
+    const onCanPlay = () => {
+      setIsLoading(false);
+      // This is the key: if autoplay is intended, and we can play, let's play.
+      if (autoplayRef.current && audio.paused) {
+        play();
+      }
+    };
+
+    const onWaiting = () => setIsLoading(true);
+
     // Add listeners
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
@@ -129,15 +155,10 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
     audio.addEventListener('error', onError);
 
     if ('mediaSession' in navigator) {
-        const handlePlay = () => audioRef.current?.play().catch(onError);
-        const handlePause = () => audioRef.current?.pause();
-        const handleSeekBackward = () => seek(-10);
-        const handleSeekForward = () => seek(10);
-        
-        navigator.mediaSession.setActionHandler('play', handlePlay);
-        navigator.mediaSession.setActionHandler('pause', handlePause);
-        navigator.mediaSession.setActionHandler('seekbackward', handleSeekBackward);
-        navigator.mediaSession.setActionHandler('seekforward', handleSeekForward);
+        navigator.mediaSession.setActionHandler('play', play);
+        navigator.mediaSession.setActionHandler('pause', pause);
+        navigator.mediaSession.setActionHandler('seekbackward', () => seek(-10));
+        navigator.mediaSession.setActionHandler('seekforward', () => seek(10));
     }
     
     return () => {
@@ -158,62 +179,44 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
         navigator.mediaSession.setActionHandler('seekforward', null);
       }
     }
-  }, [seek, setMediaSession]);
+  }, [seek, setMediaSession, onError, play, pause]);
   
+  // Effect to handle source changes
   useEffect(() => {
-    if (src && audioRef.current) {
-      if (audioRef.current.src !== src) {
-        setIsLoading(true);
-        setIsPlaying(false);
-        setProgress(0);
-        setDuration(0);
-        audioRef.current.src = src;
-        audioRef.current.load();
-      } else if (!isPlaying && autoplayRef.current) {
-        audioRef.current.play().catch(onError);
-      }
-    } else if (!src && audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.removeAttribute('src');
-        setProgress(0);
-        setDuration(0);
-        setIsPlaying(false);
-        setIsLoading(false);
+    if (audioRef.current) {
+        if (src) {
+            if (audioRef.current.src !== src) {
+              setIsLoading(true);
+              audioRef.current.src = src;
+              audioRef.current.load();
+            }
+        } else {
+            pause();
+            audioRef.current.removeAttribute('src');
+            setProgress(0);
+            setDuration(0);
+            setIsPlaying(false);
+            setIsLoading(false);
+        }
     }
-  }, [src, isPlaying]);
+  }, [src, pause]);
+
 
   useEffect(() => {
     setMediaSession();
   }, [mediaMetadata, setMediaSession]);
 
+  // Final cleanup on unmount
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      pause();
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = null;
         navigator.mediaSession.playbackState = 'none';
       }
     };
-  }, []);
+  }, [pause]);
 
-  const togglePlayPause = () => {
-    if (audioRef.current && audioRef.current.src) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch(onError);
-      }
-    }
-  };
-
-  const handleSliderChange = (value: number[]) => {
-    if (audioRef.current && isFinite(audioRef.current.duration)) {
-      audioRef.current.currentTime = value[0];
-      setProgress(value[0]);
-    }
-  };
 
   const formatTime = (time: number) => {
     if (isNaN(time) || !isFinite(time) || time < 0) {
