@@ -33,10 +33,6 @@ export function LanguageProvider({ children, langParam }: { children: ReactNode,
     document.cookie = `lang=${lang}; path=/; max-age=31536000; SameSite=Lax`;
   }, []);
 
-  useEffect(() => {
-    setLanguage(langFromUrl);
-  }, [langFromUrl, setLanguage]);
-
   const t = useCallback((key: keyof typeof en): string => {
     return translations[language][key] || translations['en'][key];
   }, [language]);

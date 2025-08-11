@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -12,6 +13,7 @@ import { Search, BrainCircuit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { handleNavigationCommand } from '@/actions/quran';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const formSchema = z.object({
   command: z.string().min(3, 'Please enter a longer command.'),
@@ -21,6 +23,7 @@ export function AiSearch() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -30,7 +33,7 @@ export function AiSearch() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(async () => {
       try {
-        const result = await handleNavigationCommand(values.command);
+        const result = await handleNavigationCommand(values.command, language);
 
         if (result.error) {
           toast({

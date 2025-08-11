@@ -4,6 +4,7 @@
 import { quranNavigator } from '@/ai/flows/quran-navigator';
 import { quranTutor } from '@/ai/flows/quran-tutor';
 import { getSurahs } from '@/lib/quran-api';
+import { useLanguage } from '@/hooks/use-translation';
 
 interface NavigationResult {
   path?: string;
@@ -13,7 +14,7 @@ interface NavigationResult {
 // More robust normalization: handles missing "Al-", hyphens, and spaces.
 const normalizeString = (str: string) => str.toLowerCase().replace(/^(al-)?/,'').replace(/[\s'-]/g, '');
 
-export async function handleNavigationCommand(command: string): Promise<NavigationResult> {
+export async function handleNavigationCommand(command: string, lang: 'en' | 'ur'): Promise<NavigationResult> {
   try {
     const navOutput = await quranNavigator({ command });
 
@@ -37,13 +38,15 @@ export async function handleNavigationCommand(command: string): Promise<Navigati
     if (!foundSurah) {
       return { error: `Surah "${navOutput.surahName}" could not be found. Please try another name.` };
     }
+    
+    const basePath = `/${lang}`;
 
     if (navOutput.action === 'openSurah') {
-      return { path: `/read?surah=${foundSurah.number}` };
+      return { path: `${basePath}/read?surah=${foundSurah.number}` };
     }
 
     if (navOutput.action === 'playSurah') {
-      return { path: `/listen?surah=${foundSurah.number}` };
+      return { path: `${basePath}/listen?surah=${foundSurah.number}` };
     }
 
     return { error: 'Unknown action.' };

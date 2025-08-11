@@ -4,7 +4,7 @@ import type { Surah } from "@/types/quran";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useLanguage } from "@/hooks/use-translation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SurahListProps {
   surahs: Surah[];

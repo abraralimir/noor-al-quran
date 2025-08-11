@@ -25,7 +25,7 @@ export default async function ReadPage({ params, searchParams }: { params: { lan
 
   return (
     <SidebarProvider>
-      <div className="flex">
+      <div className="flex -mx-4">
         <Sidebar>
           <SidebarContent>
             <Suspense fallback={<p className="p-4">{t.loadingSurahs}</p>}>
