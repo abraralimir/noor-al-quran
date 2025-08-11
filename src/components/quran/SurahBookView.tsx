@@ -11,10 +11,12 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { CardContent } from "@/components/ui/card";
-import React, from 'react';
+import React, { forwardRef } from 'react';
 import { Button } from '../ui/button';
 import { Play, Pause, X } from 'lucide-react';
 import { getAyahAudioUrl } from '@/lib/quran-api';
+import jspdf from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface SurahPageProps {
   ayahs: Ayah[];
@@ -52,19 +54,41 @@ interface SurahBookViewProps {
   ayahs: Ayah[];
   surahName: string;
   onExit: () => void;
+  pages: Record<number, Ayah[]>;
 }
 
-export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) {
+const PrintablePage = forwardRef<HTMLDivElement, { pageAyahs: Ayah[], surahName: string, pageNumber: number }>(({ pageAyahs, surahName, pageNumber }, ref) => {
+    return (
+      <div ref={ref} className="w-[800px] h-[1200px] bg-[#fdfdf7] flex flex-col p-12 box-border font-arabic">
+        <div className="flex justify-between items-center pb-4 text-amber-950">
+           <h2 className="text-lg font-headline font-bold">{surahName}</h2>
+           <h2 className="text-lg font-headline font-bold">Page {pageNumber}</h2>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 border-2 border-amber-800/10 text-right text-3xl leading-loose text-amber-950 break-words">
+            {pageAyahs.map((ayah) => (
+              <React.Fragment key={ayah.number}>
+                  {ayah.text}
+                  <span className="text-xl font-mono text-accent bg-accent/10 rounded-full w-10 h-10 inline-flex items-center justify-center mx-2 align-middle">
+                      {ayah.numberInSurah}
+                  </span>
+              </React.Fragment>
+          ))}
+        </div>
+      </div>
+    );
+});
+PrintablePage.displayName = 'PrintablePage';
+
+export function SurahBookView({ ayahs, surahName, onExit, pages: pagesMap }: SurahBookViewProps) {
   const [api, setApi] = React.useState<CarouselApi>();
   const [current, setCurrent] = React.useState(0);
   const [count, setCount] = React.useState(0);
   const [playingAyah, setPlayingAyah] = React.useState<number | null>(null);
   
-  // Use a single, stable audio element instance. This is crucial for mobile compatibility.
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const printableRefs = React.useRef<{[key: number]: HTMLDivElement | null}>({});
 
   React.useEffect(() => {
-    // Initialize audio element only once
     if (!audioRef.current) {
         audioRef.current = new Audio();
     }
@@ -73,13 +97,11 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
     const handleEnded = () => setPlayingAyah(null);
     audio.addEventListener('ended', handleEnded);
 
-    // Cleanup function
     return () => {
       audio.removeEventListener('ended', handleEnded);
       audio.pause();
     };
   }, []);
-
 
   const handlePlay = (ayahNumber: number) => {
     const audio = audioRef.current;
@@ -94,16 +116,6 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
       setPlayingAyah(ayahNumber);
     }
   };
-
-
-  const pagesMap = ayahs.reduce((acc, ayah) => {
-    const pageNumber = ayah.page;
-    if (!acc[pageNumber]) {
-      acc[pageNumber] = [];
-    }
-    acc[pageNumber].push(ayah);
-    return acc;
-  }, {} as Record<number, Ayah[]>);
 
   const pages = Object.entries(pagesMap).map(([pageNumber, pageAyahs]) => ({
     pageNumber: parseInt(pageNumber, 10),
@@ -124,7 +136,6 @@ export function SurahBookView({ ayahs, surahName, onExit }: SurahBookViewProps) 
   }, [api])
 
   const currentPageNumber = pages[current - 1]?.pageNumber;
-
 
   return (
     <div className="w-full h-full relative bg-[#f0eade] flex flex-col items-center justify-center p-4">

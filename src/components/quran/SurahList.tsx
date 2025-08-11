@@ -3,19 +3,18 @@ import type { Surah } from "@/types/quran";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useTranslation } from "@/hooks/use-translation";
 
 interface SurahListProps {
   surahs: Surah[];
   activeSurah: number;
+  title: string;
 }
 
-export function SurahList({ surahs, activeSurah }: SurahListProps) {
-  const { t } = useTranslation();
+export function SurahList({ surahs, activeSurah, title }: SurahListProps) {
   return (
     <ScrollArea className="h-full">
       <div className="p-4">
-        <h2 className="text-xl font-headline font-semibold mb-4 text-primary">{t('surahs')}</h2>
+        <h2 className="text-xl font-headline font-semibold mb-4 text-primary">{title}</h2>
         <nav>
           <ul>
             {surahs.map((surah) => (
