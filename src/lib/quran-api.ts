@@ -1,7 +1,8 @@
+
 import type { Surah, SurahDetails, Ayah, AlquranCloudSurahDetails } from '@/types/quran';
 
-const ALQURAN_CLOUD_API_BASE_URL = 'https://api.alquran.cloud/v1';
 const QURAN_COM_API_BASE_URL = 'https://api.quran.com/api/v4';
+const ALQURAN_CLOUD_API_BASE_URL = 'https://api.alquran.cloud/v1';
 
 // Cache for surah list to avoid re-fetching
 let surahsCache: Surah[] | null = null;
@@ -58,25 +59,21 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
         const translationData = await translationResponse.json();
         const translatedAyahs = translationData.translations;
 
-        // Create a map for quick lookup of translations by verse number
-        const translationMap = new Map(translatedAyahs.map((t: any) => {
-            const verseNumber = parseInt(t.verse_key.split(':')[1], 10);
-            return [verseNumber, t.text];
-        }));
-
+        // Create a map for quick lookup of translations by verse id.
+        const translationMap = new Map(translatedAyahs.map((t: any) => [t.id, t.text]));
+        
         // Step 4: Combine the data
         const ayahs: Ayah[] = arabicAyahs.map((ayah: any) => {
-            const verseNumber = parseInt(ayah.verse_key.split(':')[1], 10);
-            const translationText = translationMap.get(verseNumber) || 'Translation not found.';
+            const translationText = translationMap.get(ayah.id) || 'Translation not found.';
             // Remove the Arabic markers from the translation
             const cleanedTranslation = translationText.replace(/<sup[^>]*>.*?<\/sup>/g, '').trim();
 
             return {
                 number: ayah.id, 
-                audio: getAyahAudioUrl(ayah.id), // Use the global verse ID for audio
+                audio: getAyahAudioUrl(ayah.id),
                 audioSecondary: [],
                 text: ayah.text_uthmani,
-                numberInSurah: verseNumber,
+                numberInSurah: ayah.verse_number,
                 juz: ayah.juz_number,
                 manzil: 0, // quran.com API doesn't provide manzil
                 page: ayah.page_number,
