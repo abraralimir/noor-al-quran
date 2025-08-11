@@ -1,26 +1,31 @@
 
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "@/hooks/use-translation";
 import { BookOpen, Headphones, MessageCircleQuestion } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-12">
       <section className="text-center">
         <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary mb-4">
-          Noor Al Quran
+          {t('noorAlQuran')}
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-          Your digital gateway to the Holy Quran. Read, listen, and learn with an intuitive and serene experience designed for reflection and study.
+          {t('appDescription')}
         </p>
       </section>
 
       <section className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
         <Image
           src="/book-1920.jpg"
-          alt="The Holy Quran on a decorated stand"
+          alt={t('quranImageAlt')}
           fill
           priority
           style={{ objectFit: 'cover' }}
@@ -36,14 +41,14 @@ export default function Home() {
             <div className="mx-auto bg-accent/20 p-4 rounded-full w-fit">
               <BookOpen className="w-10 h-10 text-accent-foreground" />
             </div>
-            <CardTitle className="font-headline mt-4">Read the Quran</CardTitle>
+            <CardTitle className="font-headline mt-4">{t('readQuranCardTitle')}</CardTitle>
             <CardDescription>
-              Immerse yourself in the holy text with a clean, readable interface and optional English translations.
+              {t('readQuranCardDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="default" className="bg-primary hover:bg-primary/90">
-              <Link href="/read">Start Reading</Link>
+              <Link href="/read">{t('startReading')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -53,14 +58,14 @@ export default function Home() {
             <div className="mx-auto bg-accent/20 p-4 rounded-full w-fit">
               <Headphones className="w-10 h-10 text-accent-foreground" />
             </div>
-            <CardTitle className="font-headline mt-4">Listen to Recitations</CardTitle>
+            <CardTitle className="font-headline mt-4">{t('listenCardTitle')}</CardTitle>
             <CardDescription>
-              Experience the divine verses through beautiful audio recitations by Sheikh Alafasy.
+              {t('listenCardDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="default" className="bg-primary hover:bg-primary/90">
-              <Link href="/listen">Listen Now</Link>
+              <Link href="/listen">{t('listenNow')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -70,14 +75,14 @@ export default function Home() {
             <div className="mx-auto bg-accent/20 p-4 rounded-full w-fit">
               <MessageCircleQuestion className="w-10 h-10 text-accent-foreground" />
             </div>
-            <CardTitle className="font-headline mt-4">AI Quran Tutor</CardTitle>
+            <CardTitle className="font-headline mt-4">{t('tutorCardTitle')}</CardTitle>
             <CardDescription>
-              Have your questions about the Quran answered by our knowledgeable AI assistant.
+              {t('tutorCardDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="default" className="bg-primary hover:bg-primary/90">
-              <Link href="/tutor">Ask a Question</Link>
+              <Link href="/tutor">{t('askAQuestion')}</Link>
             </Button>
           </CardContent>
         </Card>

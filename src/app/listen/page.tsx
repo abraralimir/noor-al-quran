@@ -1,67 +1,38 @@
+
+'use client';
+
 import { SurahAudioPlayer } from '@/components/quran/SurahAudioPlayer';
 import { getSurahs } from '@/lib/quran-api';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Metadata, ResolvingMetadata } from 'next';
+import type { Surah } from '@/types/quran';
+import { useTranslation } from '@/hooks/use-translation';
+import { useSearchParams } from 'next/navigation';
 
-type Props = {
-  searchParams: { [key: string]: string | string[] | undefined }
-}
+export default function ListenPage() {
+  const [surahs, setSurahs] = useState<Surah[]>([]);
+  const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const initialSurah = searchParams.get('surah');
 
-export async function generateMetadata(
-  { searchParams }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const surahs = await getSurahs();
-  const surahNumber = searchParams?.surah ? Number(searchParams.surah) : null;
-  
-  if (surahNumber) {
-    const surah = surahs.find(s => s.number === surahNumber);
-    if (surah) {
-      const title = `Listen to Surah ${surah.englishName}`;
-      const description = `Experience the divine verses of Surah ${surah.englishName} through beautiful audio recitation by Sheikh Mishary Rashid Alafasy.`;
-      
-      return {
-        title,
-        description,
-        openGraph: {
-          title,
-          description,
-        },
-        twitter: {
-          title,
-          description,
-        },
-      };
+  useEffect(() => {
+    async function fetchSurahs() {
+      const surahList = await getSurahs();
+      setSurahs(surahList);
     }
-  }
-
-  // Default metadata
-  return {
-    title: 'Listen to the Quran',
-    description: 'Experience the divine verses through beautiful audio recitations by Sheikh Mishary Rashid Alafasy. Create custom playlists and listen seamlessly.',
-  };
-}
-
-
-export default async function ListenPage({
-  searchParams,
-}: {
-  searchParams?: { surah?: string };
-}) {
-  const surahs = await getSurahs();
-  const initialSurah = searchParams?.surah;
+    fetchSurahs();
+  }, []);
   
   return (
     <div className="max-w-2xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-3xl">Listen to the Quran</CardTitle>
-          <CardDescription>Select a Surah to listen to the beautiful recitation by Mishary Rashid Alafasy.</CardDescription>
+          <CardTitle className="font-headline text-3xl">{t('listenToTheQuran')}</CardTitle>
+          <CardDescription>{t('listenToTheQuranDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<p>Loading audio player...</p>}>
-            <SurahAudioPlayer surahs={surahs} initialSurahNumber={initialSurah} />
+          <Suspense fallback={<p>{t('loadingAudioPlayer')}</p>}>
+            <SurahAudioPlayer surahs={surahs} initialSurahNumber={initialSurah ?? undefined} />
           </Suspense>
         </CardContent>
       </Card>

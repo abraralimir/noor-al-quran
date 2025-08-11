@@ -1,74 +1,48 @@
 
+'use client';
 
 import { getSurahs, getSurah } from '@/lib/quran-api';
 import { SurahList } from '@/components/quran/SurahList';
 import { SurahDisplay } from '@/components/quran/SurahDisplay';
 import { Sidebar, SidebarContent, SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Metadata, ResolvingMetadata } from 'next';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { cookies } from 'next/headers';
+import { useSearchParams } from 'next/navigation';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from '@/hooks/use-translation';
+import type { Surah, SurahDetails } from '@/types/quran';
 
-type Props = {
-  searchParams: { [key: string]: string | string[] | undefined }
-}
+export default function ReadPage() {
+  const searchParams = useSearchParams();
+  const surahNumber = Number(searchParams.get('surah')) || 1;
+  const { language } = useLanguage();
+  const { t } = useTranslation();
 
-export async function generateMetadata(
-  { searchParams }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const surahNumber = searchParams?.surah ? Number(searchParams.surah) : 1;
-  const surahs = await getSurahs();
-  const surah = surahs.find(s => s.number === surahNumber);
+  const [surahs, setSurahs] = useState<Surah[]>([]);
+  const [surahDetails, setSurahDetails] = useState<SurahDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (surah) {
-    const title = `Read Surah ${surah.englishName}`;
-    const description = `Immerse yourself in the Holy Quran. Read Surah ${surah.englishName} with a clean, readable interface and optional English translations.`;
-    
-    return {
-      title,
-      description,
-      openGraph: {
-        title,
-        description,
-      },
-      twitter: {
-        title,
-        description,
-      },
-    };
-  }
-
-  // Default metadata
-  return {
-    title: 'Read the Quran',
-    description: 'Immerse yourself in the Holy Quran. Read Surahs with a clean, readable interface and optional English translations. Navigate easily through all 114 chapters.',
-  };
-}
-
-
-export default async function ReadPage({
-  searchParams,
-}: {
-  searchParams?: { surah?: string };
-}) {
-  const surahNumber = Number(searchParams?.surah) || 1;
-  const cookieStore = cookies();
-  const lang = cookieStore.get('lang')?.value || 'en';
-
-  // Fetch both the list of surahs and the detailed content of the selected surah.
-  const [surahs, surahDetails] = await Promise.all([
-    getSurahs(),
-    getSurah(surahNumber, lang)
-  ]);
+  useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      const [surahsData, surahDetailsData] = await Promise.all([
+        getSurahs(),
+        getSurah(surahNumber, language)
+      ]);
+      setSurahs(surahsData);
+      setSurahDetails(surahDetailsData);
+      setIsLoading(false);
+    }
+    loadData();
+  }, [surahNumber, language]);
 
   return (
     <SidebarProvider>
       <div className="flex">
         <Sidebar>
           <SidebarContent>
-            <Suspense fallback={<p>Loading Surahs...</p>}>
+            <Suspense fallback={<p>{t('loadingSurahs')}</p>}>
               <SurahList surahs={surahs} activeSurah={surahNumber} />
             </Suspense>
           </SidebarContent>
@@ -77,20 +51,20 @@ export default async function ReadPage({
           <div className="p-4">
             <div className="flex items-center gap-2 mb-4">
               <SidebarTrigger className="md:hidden" />
-              <h1 className="text-2xl font-headline font-bold">Read Quran</h1>
+              <h1 className="text-2xl font-headline font-bold">{t('readQuran')}</h1>
             </div>
-            <Suspense fallback={<SurahDisplaySkeleton />}>
-              {surahDetails ? (
-                <SurahDisplay surah={surahDetails} />
-              ) : (
-                 <Card>
-                    <CardHeader>
-                      <CardTitle>Surah Not Found</CardTitle>
-                      <CardDescription>The requested Surah could not be loaded. Please try again.</CardDescription>
-                    </CardHeader>
-                  </Card>
-              )}
-            </Suspense>
+            {isLoading ? (
+              <SurahDisplaySkeleton />
+            ) : surahDetails ? (
+              <SurahDisplay surah={surahDetails} />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('surahNotFound')}</CardTitle>
+                  <CardDescription>{t('surahNotFoundDescription')}</CardDescription>
+                </CardHeader>
+              </Card>
+            )}
           </div>
         </SidebarInset>
       </div>

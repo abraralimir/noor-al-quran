@@ -1,22 +1,24 @@
+
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Headphones, MessageCircle, Globe } from 'lucide-react';
+import { BookOpen, Headphones, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { AiSearch } from './AiSearch';
 import { useState, useEffect } from 'react';
-
-const navLinks = [
-  { href: '/read', label: 'Read', icon: BookOpen },
-  { href: '/listen', label: 'Listen', icon: Headphones },
-  { href: '/tutor', label: 'Tutor', icon: MessageCircle },
-  { href: '/translate', label: 'Translate', icon: Globe },
-];
+import { useTranslation } from '@/hooks/use-translation';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function Header() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const { t } = useTranslation();
+
+  const navLinks = [
+    { href: '/read', label: t('read'), icon: BookOpen },
+    { href: '/listen', label: t('listen'), icon: Headphones },
+    { href: '/tutor', label: t('tutor'), icon: MessageCircle },
+  ];
   
   useEffect(() => {
     setMounted(true);
@@ -31,7 +33,7 @@ export function Header() {
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
               <path d="M12 4.5c-2.29 0-4.4.6-6.17 1.67l1.41 1.41C8.61 6.78 10.24 6.5 12 6.5s3.39.28 4.76 1.08l1.41-1.41C16.4 5.1 14.29 4.5 12 4.5z"/>
             </svg>
-            <span className="font-bold font-headline text-lg">Noor Al Quran</span>
+            <span className="font-bold font-headline text-lg">{t('noorAlQuran')}</span>
           </Link>
         </div>
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
@@ -53,6 +55,7 @@ export function Header() {
           <div className="w-full flex-1 md:w-auto md:flex-none">
             {mounted && <AiSearch />}
           </div>
+          <LanguageSwitcher />
         </div>
       </div>
     </header>

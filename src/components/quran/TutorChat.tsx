@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -12,6 +13,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { handleTutorQuery } from '@/actions/quran';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from '@/hooks/use-translation';
 
 const formSchema = z.object({
   question: z.string().min(1, 'Message cannot be empty.'),
@@ -24,6 +27,8 @@ type Message = {
 };
 
 export function TutorChat() {
+  const { language } = useLanguage();
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -50,7 +55,7 @@ export function TutorChat() {
     form.reset();
 
     try {
-      const result = await handleTutorQuery(values.question);
+      const result = await handleTutorQuery(values.question, language);
       const assistantMessage: Message = {
         id: Date.now() + 1,
         role: 'assistant',
@@ -95,7 +100,10 @@ export function TutorChat() {
                     : 'bg-muted rounded-bl-none'
                 )}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <p className={cn("text-sm whitespace-pre-wrap", language === 'ur' && message.role === 'assistant' ? 'text-right font-urdu' : '')}
+                   dir={language === 'ur' && message.role === 'assistant' ? 'rtl' : 'ltr'}>
+                  {message.content}
+                </p>
               </div>
                {message.role === 'user' && (
                 <Avatar className="h-8 w-8">
@@ -132,7 +140,7 @@ export function TutorChat() {
                 <FormItem className="flex-grow">
                   <FormControl>
                     <Input
-                      placeholder="Ask about the Quran..."
+                      placeholder={t('tutorInputPlaceholder')}
                       autoComplete="off"
                       {...field}
                       disabled={isLoading}

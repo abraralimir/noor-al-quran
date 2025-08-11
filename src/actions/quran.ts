@@ -1,9 +1,9 @@
+
 'use server';
 
 import { quranNavigator } from '@/ai/flows/quran-navigator';
 import { quranTutor } from '@/ai/flows/quran-tutor';
 import { getSurahs } from '@/lib/quran-api';
-import { Surah } from '@/types/quran';
 
 interface NavigationResult {
   path?: string;
@@ -57,9 +57,9 @@ interface TutorResult {
   answer: string;
 }
 
-export async function handleTutorQuery(question: string): Promise<TutorResult> {
+export async function handleTutorQuery(question: string, language: 'en' | 'ur' = 'en'): Promise<TutorResult> {
   try {
-    const tutorOutput = await quranTutor({ question });
+    const tutorOutput = await quranTutor({ question, language });
     return { answer: tutorOutput.answer };
   } catch (error) {
     console.error('Error handling tutor query:', error);

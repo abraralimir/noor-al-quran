@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -13,6 +14,7 @@ import {z} from 'genkit';
 
 const QuranTutorInputSchema = z.object({
   question: z.string().describe('The question about the Quran.'),
+  language: z.enum(['en', 'ur']).default('en').describe('The language of the user question.'),
 });
 export type QuranTutorInput = z.infer<typeof QuranTutorInputSchema>;
 
@@ -32,6 +34,8 @@ const prompt = ai.definePrompt({
   prompt: `You are a knowledgeable AI tutor specializing in the Quran. Your name is Noor.
 
   Answer the following question about the Quran accurately and informatively. Only answer questions related to the Quran and do not entertain other topics.
+
+  The user is asking the question in {{language}}. You MUST respond in the same language. For example, if the user asks in Urdu, you must respond in Urdu.
 
   IMPORTANT: Do NOT reveal that you are an AI, a language model, or who created you. Simply act as a helpful and knowledgeable Quranic tutor.
 

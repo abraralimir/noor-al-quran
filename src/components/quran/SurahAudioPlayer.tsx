@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/use-translation';
 
 
 interface SurahAudioPlayerProps {
@@ -20,6 +21,7 @@ interface SurahAudioPlayerProps {
 }
 
 export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlayerProps) {
+  const { t } = useTranslation();
   const [selectedSurahNumber, setSelectedSurahNumber] = useState<string | undefined>(initialSurahNumber);
   const [playlist, setPlaylist] = useState<Surah[]>([]);
   const [currentPlaylistIndex, setCurrentPlaylistIndex] = useState<number>(-1);
@@ -95,13 +97,13 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
   const addToPlaylist = (surah: Surah) => {
     if (!playlist.find(s => s.number === surah.number)) {
       setPlaylist([...playlist, surah]);
-      toast({ title: "Added to Queue", description: `Surah ${surah.englishName} has been added.`});
+      toast({ title: t('addedToQueue'), description: `${t('surah')} ${surah.englishName} ${t('hasBeenAdded')}.`});
       // If nothing is playing, start playing the new song
       if (!currentPlayingSurah) {
         setCurrentPlaylistIndex(playlist.length);
       }
     } else {
-      toast({ variant: "destructive", title: "Already in Queue", description: `Surah ${surah.englishName} is already in your queue.`});
+      toast({ variant: "destructive", title: t('alreadyInQueue'), description: `${t('surah')} ${surah.englishName} ${t('isAlreadyInQueue')}.`});
     }
   };
 
@@ -111,19 +113,15 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
 
     let newPlaylist = playlist.filter(s => s.number !== surahNumber);
     
-    // If we remove the currently playing song
     if (surahToRemove.number === currentPlayingSurah?.number) {
         if (newPlaylist.length > 0) {
-            // Move to the next song, but don't loop back to the same index if it was the last one
             const nextIndex = (currentPlaylistIndex) % newPlaylist.length;
             setCurrentPlaylistIndex(nextIndex);
         } else {
-            // Playlist is empty, stop playing
             setCurrentPlaylistIndex(-1);
             setSelectedSurahNumber(undefined);
         }
     } else {
-        // If we remove a song before the current one, adjust the index
         const removedIndex = playlist.findIndex(s => s.number === surahNumber);
         if (removedIndex < currentPlaylistIndex) {
             setCurrentPlaylistIndex(currentPlaylistIndex - 1);
@@ -131,26 +129,26 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     }
     
     setPlaylist(newPlaylist);
-    toast({ title: "Removed from Queue", description: `Surah ${surahToRemove.englishName} has been removed.`});
+    toast({ title: t('removedFromQueue'), description: `${t('surah')} ${surahToRemove.englishName} ${t('hasBeenRemoved')}.`});
   };
 
   const clearPlaylist = () => {
     setPlaylist([]);
     setCurrentPlaylistIndex(-1);
-    toast({ title: "Queue Cleared" });
+    toast({ title: t('queueCleared') });
   }
 
   return (
     <div className="space-y-6">
        <Tabs defaultValue="surahs" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="surahs">Surah List</TabsTrigger>
+          <TabsTrigger value="surahs">{t('surahList')}</TabsTrigger>
           <TabsTrigger value="playlist">
-            <span className="flex items-center gap-2">Queue <ListMusic className="h-4 w-4" /> ({playlist.length})</span>
+            <span className="flex items-center gap-2">{t('queue')} <ListMusic className="h-4 w-4" /> ({playlist.length})</span>
           </TabsTrigger>
         </TabsList>
         <TabsContent value="surahs">
-            <p className="text-sm text-muted-foreground mb-2">Select a Surah to play it, or add it to your queue.</p>
+            <p className="text-sm text-muted-foreground mb-2">{t('surahListDescription')}</p>
             <ScrollArea className="h-[250px] pr-4">
                 <div className="space-y-1">
                     {surahs.map(surah => (
@@ -170,8 +168,8 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
             {playlist.length > 0 ? (
                 <>
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-muted-foreground">Your custom listening queue.</p>
-                  <Button variant="outline" size="sm" onClick={clearPlaylist}>Clear Queue</Button>
+                  <p className="text-sm text-muted-foreground">{t('yourQueue')}</p>
+                  <Button variant="outline" size="sm" onClick={clearPlaylist}>{t('clearQueue')}</Button>
                 </div>
                 <ScrollArea className="h-[250px] pr-4">
                     <div className="space-y-1">
@@ -192,8 +190,8 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
                 </>
             ) : (
                 <div className="text-center py-10">
-                    <p className="text-muted-foreground">Your queue is empty.</p>
-                    <p className="text-sm text-muted-foreground">Add Surahs from the 'Surah List' tab.</p>
+                    <p className="text-muted-foreground">{t('queueEmpty')}</p>
+                    <p className="text-sm text-muted-foreground">{t('queueEmptyDescription')}</p>
                 </div>
             )}
         </TabsContent>
@@ -208,7 +206,7 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
               <p className="text-xl font-arabic text-primary">{currentPlayingSurah.name}</p>
             </>
           ) : (
-             <p className="text-xl font-headline text-muted-foreground pt-4">Select a Surah to play</p>
+             <p className="text-xl font-headline text-muted-foreground pt-4">{t('selectASurah')}</p>
           )}
         </div>
         
@@ -226,19 +224,19 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
         </div>
         
         <div className="flex items-center justify-center space-x-4">
-           <Button variant="ghost" size="icon" onClick={handlePrevious} aria-label="Previous Surah" disabled={!currentPlayingSurah || isLoading}>
+           <Button variant="ghost" size="icon" onClick={handlePrevious} aria-label={t('previousSurah')} disabled={!currentPlayingSurah || isLoading}>
             <SkipBack className="h-6 w-6" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => seek(-10)} aria-label="Rewind 10 seconds" disabled={!currentPlayingSurah || isLoading}>
+          <Button variant="ghost" size="icon" onClick={() => seek(-10)} aria-label={t('rewind10Seconds')} disabled={!currentPlayingSurah || isLoading}>
             <Rewind className="h-6 w-6" />
           </Button>
-          <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={togglePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'} disabled={!currentPlayingSurah || isLoading}>
+          <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={togglePlayPause} aria-label={isPlaying ? t('pause') : t('play')} disabled={!currentPlayingSurah || isLoading}>
             {isLoading ? <LoaderCircle className="h-8 w-8 animate-spin" /> : (isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />)}
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => seek(10)} aria-label="Fast-forward 10 seconds" disabled={!currentPlayingSurah || isLoading}>
+          <Button variant="ghost" size="icon" onClick={() => seek(10)} aria-label={t('fastForward10Seconds')} disabled={!currentPlayingSurah || isLoading}>
             <FastForward className="h-6 w-6" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={handleNext} aria-label="Next Surah" disabled={!currentPlayingSurah || isLoading}>
+          <Button variant="ghost" size="icon" onClick={handleNext} aria-label={t('nextSurah')} disabled={!currentPlayingSurah || isLoading}>
             <SkipForward className="h-6 w-6" />
           </Button>
         </div>
