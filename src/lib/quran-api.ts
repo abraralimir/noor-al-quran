@@ -40,9 +40,8 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
 
         const ayahs = arabicData.ayahs.map((ayah, index) => ({
             number: ayah.number,
-            // The audio URLs from this API are different, so we construct our own for consistency
             audio: getAyahAudioUrl(ayah.number),
-            audioSecondary: [], // This API doesn't provide secondary audio sources
+            audioSecondary: [],
             text: ayah.text,
             numberInSurah: ayah.numberInSurah,
             juz: ayah.juz,
@@ -50,7 +49,7 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
             page: ayah.page,
             ruku: ayah.ruku,
             hizbQuarter: ayah.hizbQuarter,
-            sajda: !!ayah.sajda, // Coerce sajda to a simple boolean
+            sajda: !!ayah.sajda,
             translation: translationData.ayahs[index].text,
         }));
 
@@ -68,7 +67,6 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
         return null;
     }
 }
-
 
 // Ayah-by-ayah recitation by Sheikh Sudais from the CDN
 export function getAyahAudioUrl(ayahNumber: number): string {
