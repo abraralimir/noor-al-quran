@@ -1,41 +1,33 @@
 
-'use client';
+import { Suspense } from 'react';
+import { ListenPageClient } from './ListenPageClient';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { SurahAudioPlayer } from '@/components/quran/SurahAudioPlayer';
-import { getSurahs } from '@/lib/quran-api';
-import { Suspense, useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Surah } from '@/types/quran';
-import { useTranslation } from '@/hooks/use-translation';
-import { useSearchParams } from 'next/navigation';
-
-export default function ListenPage() {
-  const [surahs, setSurahs] = useState<Surah[]>([]);
-  const { t } = useTranslation();
-  const searchParams = useSearchParams();
-  const initialSurah = searchParams.get('surah');
-
-  useEffect(() => {
-    async function fetchSurahs() {
-      const surahList = await getSurahs();
-      setSurahs(surahList);
-    }
-    fetchSurahs();
-  }, []);
-  
+function ListenPageSkeleton() {
   return (
     <div className="max-w-2xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-3xl">{t('listenToTheQuran')}</CardTitle>
-          <CardDescription>{t('listenToTheQuranDescription')}</CardDescription>
+          <CardTitle className="font-headline text-3xl"><Skeleton className="h-8 w-48" /></CardTitle>
+          <CardDescription><Skeleton className="h-5 w-full" /></CardDescription>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<p>{t('loadingAudioPlayer')}</p>}>
-            <SurahAudioPlayer surahs={surahs} initialSurahNumber={initialSurah ?? undefined} />
-          </Suspense>
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function ListenPage() {
+  return (
+    <Suspense fallback={<ListenPageSkeleton />}>
+      <ListenPageClient />
+    </Suspense>
   );
 }
