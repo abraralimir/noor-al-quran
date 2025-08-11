@@ -3,9 +3,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '../ui/button';
-import { LoaderCircle, Check, X, RefreshCw, Send, Volume2 } from 'lucide-react';
+import { LoaderCircle, Check, X, RefreshCw, Send } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '../ui/card';
-import { handleWritingSubmission, getInstructionAudio } from '@/actions/quran';
+import { handleWritingSubmission } from '@/actions/quran';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { arabicAlphabet } from '@/lib/kids-data';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
@@ -13,12 +13,13 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 export function WritingCanvas() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isDrawing, setIsDrawing] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const { language } = useLanguage();
     const [currentLetterIndex, setCurrentLetterIndex] = useState(0);
     const [feedback, setFeedback] = useState<{ type: 'correct' | 'incorrect' | 'info'; message: string } | null>(null);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
+    
+    const correctAudioRef = useRef<HTMLAudioElement | null>(null);
+    const incorrectAudioRef = useRef<HTMLAudioElement | null>(null);
 
     const currentLetter = arabicAlphabet[currentLetterIndex];
 
@@ -32,33 +33,20 @@ export function WritingCanvas() {
                 ctx.lineCap = 'round';
             }
         }
+        
+        // Preload audio files
+        correctAudioRef.current = new Audio('/audio/correct.mp3');
+        incorrectAudioRef.current = new Audio('/audio/incorrect.mp3');
     }, []);
 
-    useEffect(() => {
-        // Preload and play initial instruction audio
-        const playInitialInstruction = async () => {
-            const text = language === 'ur' 
-                ? `چلو ${currentLetter.name} لکھتے ہیں` 
-                : `Let's write ${currentLetter.name}`;
-            setIsLoading(true);
-            const { audioDataUri } = await getInstructionAudio(text);
-            playAudio(audioDataUri);
-            setIsLoading(false);
-        };
-        playInitialInstruction();
-    }, [currentLetterIndex, language]);
-
-    const playAudio = (audioDataUri: string) => {
-        if (!audioRef.current) {
-            audioRef.current = new Audio();
-            audioRef.current.addEventListener('ended', () => setIsLoading(false));
-            audioRef.current.addEventListener('error', () => setIsLoading(false));
-            audioRef.current.addEventListener('canplay', () => audioRef.current?.play());
+    const playAudio = (type: 'correct' | 'incorrect') => {
+        if (type === 'correct' && correctAudioRef.current) {
+            correctAudioRef.current.play();
+        } else if (type === 'incorrect' && incorrectAudioRef.current) {
+            incorrectAudioRef.current.play();
         }
-        setIsLoading(true);
-        audioRef.current.src = audioDataUri;
     };
-
+    
     const getCoords = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
         const canvas = canvasRef.current;
         if (!canvas) return { offsetX: 0, offsetY: 0 };
@@ -128,29 +116,21 @@ export function WritingCanvas() {
             message: result.feedback,
         });
 
-        playAudio(result.feedbackAudio);
+        playAudio(result.isCorrect ? 'correct' : 'incorrect');
         
         if (result.isCorrect) {
             setTimeout(() => {
+                clearCanvas();
                 if (currentLetterIndex < arabicAlphabet.length - 1) {
                     setCurrentLetterIndex(currentLetterIndex + 1);
-                    clearCanvas();
                 } else {
                      setFeedback({ type: 'info', message: language === 'ur' ? 'شاباش! آپ نے تمام حروف مکمل کر لیے ہیں۔' : 'Congratulations! You have completed all the letters.' });
                 }
-            }, 3000); // Wait 3 seconds before moving to the next letter
+            }, 2000); // Wait 2 seconds before moving to the next letter
         }
         setIsProcessing(false);
     };
 
-    const handleInstructionAudio = async () => {
-        const text = language === 'ur'
-            ? `${currentLetter.name} لکھیں`
-            : `Write ${currentLetter.name}`;
-        const { audioDataUri } = await getInstructionAudio(text);
-        playAudio(audioDataUri);
-    };
-    
     // Prevent scrolling while drawing on canvas on mobile
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -177,9 +157,6 @@ export function WritingCanvas() {
                         {language === 'ur' ? 'یہ حرف لکھیں:' : 'Write this letter:'}
                     </p>
                     <span className="font-arabic text-6xl font-bold text-primary">{currentLetter.letter}</span>
-                    <Button onClick={handleInstructionAudio} size="icon" variant="ghost" disabled={isLoading}>
-                       {isLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
-                    </Button>
                 </div>
             </CardHeader>
             <CardContent className="flex justify-center items-center">
@@ -219,4 +196,3 @@ export function WritingCanvas() {
         </Card>
     );
 }
-

@@ -3,7 +3,6 @@
 
 import { quranNavigator } from '@/ai/flows/quran-navigator';
 import { quranTutor } from '@/ai/flows/quran-tutor';
-import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { writingInstructor } from '@/ai/flows/writing-instructor';
 import { getSurahs } from '@/lib/quran-api';
 
@@ -74,29 +73,16 @@ export async function handleTutorQuery(question: string, language: 'en' | 'ur' =
 interface WritingInstructorResult {
   isCorrect: boolean;
   feedback: string;
-  feedbackAudio: string;
   nextLetter?: string;
 }
 
 export async function handleWritingSubmission(imageDataUri: string, letter: string, lang: 'en' | 'ur'): Promise<WritingInstructorResult> {
     try {
         const { isCorrect, feedback, nextLetter } = await writingInstructor({ drawing: imageDataUri, letter, language: lang });
-        const { audioDataUri } = await textToSpeech({ text: feedback });
-        
-        return { isCorrect, feedback, feedbackAudio: audioDataUri, nextLetter };
+        return { isCorrect, feedback, nextLetter };
     } catch (error) {
         console.error('Error handling writing submission:', error);
         const fallbackFeedback = "I'm sorry, something went wrong. Let's try that again.";
-        const { audioDataUri } = await textToSpeech({ text: fallbackFeedback });
-        return { isCorrect: false, feedback: fallbackFeedback, feedbackAudio: audioDataUri };
-    }
-}
-
-export async function getInstructionAudio(text: string): Promise<{ audioDataUri: string }> {
-    try {
-        return await textToSpeech({ text });
-    } catch (error) {
-        console.error('Error getting instruction audio:', error);
-        return { audioDataUri: '' };
+        return { isCorrect: false, feedback: fallbackFeedback };
     }
 }

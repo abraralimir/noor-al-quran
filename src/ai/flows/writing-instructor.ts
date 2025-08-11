@@ -40,7 +40,7 @@ const prompt = ai.definePrompt({
 You will be given an image of a child's drawing and the letter they were supposed to write. Your task is to:
 1.  Analyze the drawing.
 2.  Determine if the drawing correctly represents the target letter. Be lenient, as this is for a child. A recognizable attempt is good enough.
-3.  Provide short, positive, and encouraging feedback in the specified language ({{language}}).
+3.  Provide short, positive, and encouraging text feedback in the specified language ({{language}}).
 4.  If the letter is correct, identify the next letter in the Arabic alphabet.
 
 Example Interaction (User draws "Alif" correctly):
