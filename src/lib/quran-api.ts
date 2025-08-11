@@ -59,12 +59,12 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
         const translationData = await translationResponse.json();
         const translatedAyahs = translationData.translations;
 
-        // Create a map for quick lookup of translations by verse id.
-        const translationMap = new Map(translatedAyahs.map((t: any) => [t.id, t.text]));
+        // Create a map for quick lookup of translations by verse number.
+        const translationMap = new Map(translatedAyahs.map((t: any) => [t.verse_number, t.text]));
         
         // Step 4: Combine the data
         const ayahs: Ayah[] = arabicAyahs.map((ayah: any) => {
-            const translationText = translationMap.get(ayah.id) || 'Translation not found.';
+            const translationText = translationMap.get(ayah.verse_number) || 'Translation not found.';
             // Remove the Arabic markers from the translation
             const cleanedTranslation = translationText.replace(/<sup[^>]*>.*?<\/sup>/g, '').trim();
 
