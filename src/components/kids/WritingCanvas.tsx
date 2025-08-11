@@ -59,8 +59,25 @@ export function WritingCanvas() {
         audioRef.current.src = audioDataUri;
     };
 
-    const startDrawing = ({ nativeEvent }: React.MouseEvent<HTMLCanvasElement>) => {
-        const { offsetX, offsetY } = nativeEvent;
+    const getCoords = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return { offsetX: 0, offsetY: 0 };
+        const rect = canvas.getBoundingClientRect();
+    
+        if ('touches' in event.nativeEvent) {
+            return {
+                offsetX: event.nativeEvent.touches[0].clientX - rect.left,
+                offsetY: event.nativeEvent.touches[0].clientY - rect.top,
+            };
+        }
+        return {
+            offsetX: event.nativeEvent.offsetX,
+            offsetY: event.nativeEvent.offsetY,
+        };
+    };
+
+    const startDrawing = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+        const { offsetX, offsetY } = getCoords(event);
         const ctx = canvasRef.current?.getContext('2d');
         if (ctx) {
             ctx.beginPath();
@@ -69,9 +86,9 @@ export function WritingCanvas() {
         }
     };
 
-    const draw = ({ nativeEvent }: React.MouseEvent<HTMLCanvasElement>) => {
+    const draw = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
         if (!isDrawing) return;
-        const { offsetX, offsetY } = nativeEvent;
+        const { offsetX, offsetY } = getCoords(event);
         const ctx = canvasRef.current?.getContext('2d');
         if (ctx) {
             ctx.lineTo(offsetX, offsetY);
@@ -133,6 +150,24 @@ export function WritingCanvas() {
         const { audioDataUri } = await getInstructionAudio(text);
         playAudio(audioDataUri);
     };
+    
+    // Prevent scrolling while drawing on canvas on mobile
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const preventScroll = (e: TouchEvent) => {
+            if (isDrawing) {
+                e.preventDefault();
+            }
+        };
+
+        canvas.addEventListener('touchmove', preventScroll, { passive: false });
+
+        return () => {
+            canvas.removeEventListener('touchmove', preventScroll);
+        };
+    }, [isDrawing]);
 
     return (
         <Card>
@@ -152,11 +187,14 @@ export function WritingCanvas() {
                     ref={canvasRef}
                     width="300"
                     height="300"
-                    className="bg-white border-2 border-dashed border-gray-300 rounded-lg cursor-crosshair shadow-inner"
+                    className="bg-white border-2 border-dashed border-gray-300 rounded-lg cursor-crosshair shadow-inner touch-none"
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
                     onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
                 />
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
@@ -181,3 +219,4 @@ export function WritingCanvas() {
         </Card>
     );
 }
+
