@@ -23,24 +23,30 @@ export async function getSurahs(): Promise<Surah[]> {
   }
 }
 
+async function fetchEdition(surahNumber: number, edition: string): Promise<any> {
+  const response = await fetch(`${API_BASE_URL}/surah/${surahNumber}/${edition}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch surah ${surahNumber} for edition ${edition}`);
+  }
+  const json = await response.json();
+  return json.data;
+}
+
+
 export async function getSurah(surahNumber: number): Promise<SurahDetails | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/surah/${surahNumber}/editions/quran-uthmani,en.sahih,en.jalalayn`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch surah ${surahNumber}`);
-    }
-    const data = await response.json();
-    
-    const arabicData = data.data[0];
-    const englishData = data.data[1];
-    const tafseerData = data.data[2];
+    const [arabicData, englishData, tafseerData] = await Promise.all([
+      fetchEdition(surahNumber, 'quran-uthmani'),
+      fetchEdition(surahNumber, 'en.sahih'),
+      fetchEdition(surahNumber, 'en.jalalayn'),
+    ]);
 
     if (!arabicData || !englishData || !tafseerData) return null;
 
     const ayahs = arabicData.ayahs.map((ayah: any, index: number) => ({
       ...ayah,
-      translation: englishData.ayahs[index].text,
-      tafseer: tafseerData.ayahs[index].text,
+      translation: englishData.ayahs[index]?.text || '',
+      tafseer: tafseerData.ayahs[index]?.text || '',
     }));
 
     return {
