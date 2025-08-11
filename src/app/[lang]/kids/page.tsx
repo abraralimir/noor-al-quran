@@ -52,8 +52,6 @@ export default function KidsPage() {
               key={item.name}
               character={item.letter}
               name={item.name}
-              imageSrc={item.imageSrc}
-              dataAiHint={item.dataAiHint}
               gradient={sectionColors.letters}
             />
           ))}
@@ -72,8 +70,6 @@ export default function KidsPage() {
               key={item.name}
               character={item.number}
               name={item.name}
-              imageSrc={item.imageSrc}
-              dataAiHint={item.dataAiHint}
               gradient={sectionColors.numbers}
             />
           ))}
