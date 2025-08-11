@@ -33,10 +33,11 @@ export interface SurahsApiResponse {
   data: Surah[];
 }
 
-export interface SurahDetailsApiResponse {
-    code: number;
-    status: string;
-    data: SurahDetails[];
+// This is the type for the Al-Quran cloud API when we request multiple editions
+export interface AlquranCloudSurahDetails {
+  code: number;
+  status: string;
+  data: SurahDetails[];
 }
 
 

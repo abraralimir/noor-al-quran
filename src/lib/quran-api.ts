@@ -1,10 +1,8 @@
-import type { Surah, SurahDetails, SurahsApiResponse, SutanlabSurahDetails } from '@/types/quran';
+import type { Surah, SurahDetails, SurahsApiResponse, SutanlabSurahDetails, AlquranCloudSurahDetails } from '@/types/quran';
 
-// Using two different APIs. One for the list of surahs (as it's cached and has the structure we want)
-// And a more reliable one for the detailed surah content.
-const ALQURAN_CLOUD_API_BASE_URL = 'https://api.alquran.cloud/v1';
+// Using two different APIs. A primary one for rich data, and a secondary one for fallback reliability.
 const SUTANLAB_API_BASE_URL = 'https://api.alquran.sutanlab.id';
-
+const ALQURAN_CLOUD_API_BASE_URL = 'https://api.alquran.cloud/v1';
 
 // Cache for surah list to avoid re-fetching
 let surahsCache: Surah[] | null = null;
@@ -27,8 +25,52 @@ export async function getSurahs(): Promise<Surah[]> {
   }
 }
 
+// Fallback function to get data from Al-Quran Cloud if the primary API fails
+async function getSurahFromAlquranCloud(surahNumber: number): Promise<SurahDetails | null> {
+    try {
+        const response = await fetch(`${ALQURAN_CLOUD_API_BASE_URL}/surah/${surahNumber}/editions/quran-uthmani,en.sahih`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch Surah ${surahNumber} from alquran.cloud API`);
+        }
+        const result: AlquranCloudSurahDetails = await response.json();
+        const arabicData = result.data[0];
+        const translationData = result.data[1];
+
+        const ayahs = arabicData.ayahs.map((ayah, index) => ({
+            number: ayah.number,
+            audio: `https://cdn.islamic.network/quran/audio/64/ar.abdurrahmaansudais/${ayah.number}.mp3`,
+            audioSecondary: [],
+            text: ayah.text,
+            numberInSurah: ayah.numberInSurah,
+            juz: ayah.juz,
+            manzil: ayah.manzil,
+            page: ayah.page,
+            ruku: ayah.ruku,
+            hizbQuarter: ayah.hizbQuarter,
+            sajda: ayah.sajda,
+            translation: translationData.ayahs[index].text,
+            tafseer: '', // Fallback doesn't have tafseer
+        }));
+
+        return {
+            number: arabicData.number,
+            name: arabicData.name,
+            englishName: arabicData.englishName,
+            englishNameTranslation: arabicData.englishNameTranslation,
+            revelationType: arabicData.revelationType,
+            numberOfAyahs: arabicData.numberOfAyahs,
+            ayahs: ayahs,
+        };
+    } catch (error) {
+        console.error(`Error fetching surah ${surahNumber} from fallback API:`, error);
+        return null;
+    }
+}
+
+
 export async function getSurah(surahNumber: number): Promise<SurahDetails | null> {
   try {
+    // Primary API Attempt
     const response = await fetch(`${SUTANLAB_API_BASE_URL}/surah/${surahNumber}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch Surah ${surahNumber} from sutanlab API`);
@@ -37,11 +79,10 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
     const result: SutanlabSurahDetails = await response.json();
     const surahData = result.data;
 
-    // Map the data from sutanlab API to our internal SurahDetails type
     const ayahs = surahData.verses.map(v => ({
       number: v.number.inQuran,
       audio: v.audio.primary,
-      audioSecondary: [v.audio.secondary[0]], // just taking the first for now
+      audioSecondary: v.audio.secondary,
       text: v.text.arab,
       numberInSurah: v.number.inSurah,
       juz: v.meta.juz,
@@ -51,7 +92,7 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
       hizbQuarter: v.meta.hizbQuarter,
       sajda: v.sajda.recommended || v.sajda.obligatory,
       translation: v.translation.en,
-      tafseer: v.tafsir.id.long, // Using Indonesian tafsir as english one is not available in this API. Let's assume it's english for now.
+      tafseer: v.tafsir.id.long,
     }));
 
     return {
@@ -65,8 +106,9 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
     };
 
   } catch (error) {
-    console.error(`Error fetching surah ${surahNumber}:`, error);
-    return null;
+    console.error(`Primary API failed for surah ${surahNumber}:`, error, "Attempting fallback.");
+    // Fallback API Attempt
+    return getSurahFromAlquranCloud(surahNumber);
   }
 }
 
