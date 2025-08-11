@@ -15,7 +15,7 @@ export const arabicAlphabet = [
   { letter: 'ش', name: 'Shin' },
   { letter: 'ص', name: 'Sad' },
   { letter: 'ض', name: 'Dad' },
-  { letter: 'ط', name: 'Ta' },
+  { letter: 'ط', name: 'Taa' },
   { letter: 'ظ', name: 'Dha' },
   { letter: 'ع', name: 'Ain' },
   { letter: 'غ', name: 'Ghain' },
@@ -25,7 +25,7 @@ export const arabicAlphabet = [
   { letter: 'ل', name: 'Lam' },
   { letter: 'م', name: 'Mim' },
   { letter: 'ن', name: 'Nun' },
-  { letter: 'ه', 'name': 'Ha' },
+  { letter: 'ه', 'name': 'Haa' },
   { letter: 'و', name: 'Waw' },
   { letter: 'ي', name: 'Ya' },
 ];

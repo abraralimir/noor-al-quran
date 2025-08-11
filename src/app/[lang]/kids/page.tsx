@@ -49,7 +49,7 @@ export default function KidsPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
           {arabicAlphabet.map((item) => (
             <LearningCard
-              key={item.name}
+              key={`${item.name}-${item.letter}`}
               character={item.letter}
               name={item.name}
               gradient={sectionColors.letters}
@@ -67,7 +67,7 @@ export default function KidsPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
           {arabicNumbers.map((item) => (
             <LearningCard
-              key={item.name}
+              key={`${item.name}-${item.number}`}
               character={item.number}
               name={item.name}
               gradient={sectionColors.numbers}
