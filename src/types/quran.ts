@@ -20,6 +20,7 @@ export interface Ayah {
   hizbQuarter: number;
   sajda: boolean | { id: number; recommended: boolean; obligatory: boolean };
   translation: string;
+  tafseer?: string;
 }
 
 export interface SurahDetails extends Surah {

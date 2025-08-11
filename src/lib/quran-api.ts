@@ -25,7 +25,7 @@ export async function getSurahs(): Promise<Surah[]> {
 
 export async function getSurah(surahNumber: number): Promise<SurahDetails | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/surah/${surahNumber}/editions/quran-uthmani,en.sahih`);
+    const response = await fetch(`${API_BASE_URL}/surah/${surahNumber}/editions/quran-uthmani,en.sahih,en.jalalayn`);
     if (!response.ok) {
       throw new Error(`Failed to fetch surah ${surahNumber}`);
     }
@@ -33,12 +33,14 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
     
     const arabicData = data.data[0];
     const englishData = data.data[1];
+    const tafseerData = data.data[2];
 
-    if (!arabicData || !englishData) return null;
+    if (!arabicData || !englishData || !tafseerData) return null;
 
     const ayahs = arabicData.ayahs.map((ayah: any, index: number) => ({
       ...ayah,
       translation: englishData.ayahs[index].text,
+      tafseer: tafseerData.ayahs[index].text,
     }));
 
     return {

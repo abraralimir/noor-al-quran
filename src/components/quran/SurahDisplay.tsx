@@ -12,6 +12,8 @@ import { getSurah } from '@/lib/quran-api';
 import React from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
+import { TafseerDisplay } from './TafseerDisplay';
+
 
 interface SurahDisplayProps {
   surahNumber: number;
@@ -108,7 +110,6 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     }
   };
 
-
   if (isLoading) {
     return <SurahDisplaySkeleton />;
   }
@@ -133,33 +134,35 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
           onExit={toggleBookView}
         />
       ) : (
-        <>
-        <div className="flex items-center space-x-4 justify-end mb-4 pr-4">
-            <Button variant="outline" onClick={toggleBookView}>
-                <BookText className="w-4 h-4 mr-2" />
-                Book View
-            </Button>
-        </div>
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-4xl font-headline">{surah.englishName}</CardTitle>
-                <CardDescription>{surah.englishNameTranslation}</CardDescription>
-              </div>
-              <p className="text-4xl font-arabic font-bold text-primary">{surah.name}</p>
+        <div className="space-y-8">
+            <div className="flex items-center space-x-4 justify-end">
+                <Button variant="outline" onClick={toggleBookView}>
+                    <BookText className="w-4 h-4 mr-2" />
+                    Book View
+                </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <Separator className="mb-6" />
-            <AyahCard 
-              ayahs={surah.ayahs} 
-              surahNumber={surahNumber} 
-              showTranslation={showTranslation} 
-            />
-          </CardContent>
-        </Card>
-        </>
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-4xl font-headline">{surah.englishName}</CardTitle>
+                    <CardDescription>{surah.englishNameTranslation}</CardDescription>
+                  </div>
+                  <p className="text-4xl font-arabic font-bold text-primary">{surah.name}</p>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Separator className="mb-6" />
+                <AyahCard 
+                  ayahs={surah.ayahs} 
+                  surahNumber={surahNumber} 
+                  showTranslation={showTranslation} 
+                />
+              </CardContent>
+            </Card>
+
+            <TafseerDisplay surah={surah} />
+        </div>
       )}
     </div>
   );
