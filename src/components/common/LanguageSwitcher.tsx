@@ -12,9 +12,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Globe } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 
 export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleLanguageChange = (newLang: string) => {
+    if (language !== newLang) {
+      const newPath = pathname.replace(`/${language}`, `/${newLang}`);
+      router.push(newPath);
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -27,7 +37,7 @@ export function LanguageSwitcher() {
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Select Language</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup value={language} onValueChange={(value) => setLanguage(value as 'en' | 'ur')}>
+        <DropdownMenuRadioGroup value={language} onValueChange={handleLanguageChange}>
           <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="ur">Urdu (اردو)</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>

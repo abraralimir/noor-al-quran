@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   return (
     <div className="space-y-12">
@@ -30,6 +31,7 @@ export default function Home() {
           priority
           style={{ objectFit: 'cover' }}
           className="opacity-80"
+          data-ai-hint="holy quran"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
       </section>
@@ -48,7 +50,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="default" className="bg-primary hover:bg-primary/90">
-              <Link href="/read">{t('startReading')}</Link>
+              <Link href={`/${language}/read`}>{t('startReading')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -65,7 +67,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="default" className="bg-primary hover:bg-primary/90">
-              <Link href="/listen">{t('listenNow')}</Link>
+              <Link href={`/${language}/listen`}>{t('listenNow')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -82,7 +84,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="default" className="bg-primary hover:bg-primary/90">
-              <Link href="/tutor">{t('askAQuestion')}</Link>
+              <Link href={`/${language}/tutor`}>{t('askAQuestion')}</Link>
             </Button>
           </CardContent>
         </Card>

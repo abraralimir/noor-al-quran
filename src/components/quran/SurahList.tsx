@@ -1,8 +1,10 @@
 
+
 import type { Surah } from "@/types/quran";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLanguage } from "@/hooks/use-translation";
 
 interface SurahListProps {
   surahs: Surah[];
@@ -11,6 +13,8 @@ interface SurahListProps {
 }
 
 export function SurahList({ surahs, activeSurah, title }: SurahListProps) {
+  const { language } = useLanguage();
+  
   return (
     <ScrollArea className="h-full">
       <div className="p-4">
@@ -20,7 +24,7 @@ export function SurahList({ surahs, activeSurah, title }: SurahListProps) {
             {surahs.map((surah) => (
               <li key={surah.number}>
                 <Link
-                  href={`/read?surah=${surah.number}`}
+                  href={`/${language}/read?surah=${surah.number}`}
                   className={cn(
                     "block p-3 rounded-lg transition-colors",
                     activeSurah === surah.number
