@@ -1,4 +1,4 @@
-import type { Surah, SurahDetails, Ayah, SutanlabSurahDetails, AlquranCloudSurahDetails } from '@/types/quran';
+import type { Surah, SurahDetails, Ayah, AlquranCloudSurahDetails } from '@/types/quran';
 
 const ALQURAN_CLOUD_API_BASE_URL = 'https://api.alquran.cloud/v1';
 const QURAN_COM_API_BASE_URL = 'https://api.quran.com/api/v4';
@@ -36,7 +36,7 @@ export async function getSurahs(): Promise<Surah[]> {
   }
 }
 
-// Fetches details for a single Surah. Uses quran.com API.
+// Fetches details for a single Surah. Uses quran.com API with a fallback to alquran.cloud.
 export async function getSurah(surahNumber: number): Promise<SurahDetails | null> {
     try {
         // Step 1: Get basic info about the surah (including the name)
