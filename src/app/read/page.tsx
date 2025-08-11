@@ -8,6 +8,8 @@ import { cookies } from 'next/headers';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ReadPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
   const surahNumber = Number(searchParams?.surah) || 1;
   const cookieStore = cookies();
