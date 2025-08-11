@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
-import { LoaderCircle, Pause, Play, Volume2 } from 'lucide-react';
+import { LoaderCircle, Pause, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface LearningCardProps {
@@ -80,6 +80,8 @@ export function LearningCard({
     if (isPlaying) {
       audio.pause();
     } else {
+      // Stop any other audio that might be playing from other cards
+      document.querySelectorAll('audio').forEach(el => el.pause());
       audio.play().catch(() => { /* Error is handled by listener */ });
     }
   };
