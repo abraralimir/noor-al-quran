@@ -1,10 +1,19 @@
 
-import type { Surah, SurahDetails, Ayah, SutanlabSurah, SutanlabSurahDetails } from '@/types/quran';
+import type { Surah, SurahDetails, Ayah } from '@/types/quran';
 
-const QURAN_API_BASE_URL = 'https://quranapi.pages.dev';
+const ALQURAN_CLOUD_API_BASE_URL = 'https://api.alquran.cloud/v1';
 
 // Cache for surah list to avoid re-fetching
 let surahsCache: Surah[] | null = null;
+
+interface AlquranCloudSurah {
+  number: number;
+  name: string;
+  englishName: string;
+  englishNameTranslation: string;
+  revelationType: string;
+  numberOfAyahs: number;
+}
 
 // Fetches the list of all Surahs.
 export async function getSurahs(): Promise<Surah[]> {
@@ -12,19 +21,19 @@ export async function getSurahs(): Promise<Surah[]> {
     return surahsCache;
   }
   try {
-    const response = await fetch(`${QURAN_API_BASE_URL}/suras`);
+    const response = await fetch(`${ALQURAN_CLOUD_API_BASE_URL}/surah`);
     if (!response.ok) {
-      throw new Error('Failed to fetch surahs from quranapi.pages.dev');
+      throw new Error('Failed to fetch surahs from api.alquran.cloud');
     }
-    const data: SutanlabSurah[] = await response.json();
+    const data = await response.json();
     
     // Map the response to our internal Surah type
-    const mappedSurahs: Surah[] = data.map((surah) => ({
+    const mappedSurahs: Surah[] = data.data.map((surah: AlquranCloudSurah) => ({
       number: surah.number,
       name: surah.name,
       englishName: surah.englishName,
       englishNameTranslation: surah.englishNameTranslation,
-      revelationType: surah.revelation,
+      revelationType: surah.revelationType,
       numberOfAyahs: surah.numberOfAyahs,
     }));
 
@@ -39,34 +48,37 @@ export async function getSurahs(): Promise<Surah[]> {
 // Fetches details for a single Surah.
 export async function getSurah(surahNumber: number): Promise<SurahDetails | null> {
     try {
-        const response = await fetch(`${QURAN_API_BASE_URL}/suras/${surahNumber}`);
+        const response = await fetch(`${ALQURAN_CLOUD_API_BASE_URL}/surah/${surahNumber}/editions/quran-uthmani,en.sahih`);
         if (!response.ok) {
-            throw new Error(`Failed to fetch Surah ${surahNumber} from quranapi.pages.dev`);
+            throw new Error(`Failed to fetch Surah ${surahNumber} from api.alquran.cloud`);
         }
-        const data: SutanlabSurahDetails = await response.json();
-       
-        const ayahs: Ayah[] = data.ayahs.map((ayah) => ({
-            number: ayah.number.inQuran,
-            audio: ayah.audio.primary,
-            audioSecondary: ayah.audio.secondary,
-            text: ayah.text.arab,
-            numberInSurah: ayah.number.inSurah,
-            juz: ayah.meta.juz,
-            manzil: ayah.meta.manzil,
-            page: ayah.meta.page,
-            ruku: ayah.meta.ruku,
-            hizbQuarter: ayah.meta.hizbQuarter,
-            sajda: ayah.meta.sajda.obligatory || ayah.meta.sajda.recommended,
-            translation: ayah.translation.en,
+        const data = await response.json();
+
+        const arabicEdition = data.data[0];
+        const translationEdition = data.data[1];
+
+        const ayahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
+            number: ayah.number,
+            audio: `https://cdn.islamic.network/quran/audio/64/ar.abdurrahmaansudais/${ayah.number}.mp3`,
+            audioSecondary: [], // This API doesn't provide secondary audio links in this call
+            text: ayah.text,
+            numberInSurah: ayah.numberInSurah,
+            juz: ayah.juz,
+            manzil: ayah.manzil,
+            page: ayah.page,
+            ruku: ayah.ruku,
+            hizbQuarter: ayah.hizbQuarter,
+            sajda: ayah.sajda,
+            translation: translationEdition.ayahs[index]?.text || 'Translation not found.',
         }));
 
         return {
-            number: data.number,
-            name: data.name,
-            englishName: data.englishName,
-            englishNameTranslation: data.englishNameTranslation,
-            revelationType: data.revelation,
-            numberOfAyahs: data.numberOfAyahs,
+            number: arabicEdition.number,
+            name: arabicEdition.name,
+            englishName: arabicEdition.englishName,
+            englishNameTranslation: arabicEdition.englishNameTranslation,
+            revelationType: arabicEdition.revelationType,
+            numberOfAyahs: arabicEdition.numberOfAyahs,
             ayahs: ayahs,
         };
 
