@@ -12,7 +12,6 @@ import { getSurah } from '@/lib/quran-api';
 import React from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
-import { TafseerDisplay } from './TafseerDisplay';
 
 
 interface SurahDisplayProps {
@@ -161,7 +160,6 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
               </CardContent>
             </Card>
 
-            <TafseerDisplay surah={surah} />
         </div>
       )}
     </div>

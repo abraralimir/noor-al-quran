@@ -49,7 +49,6 @@ async function getSurahFromAlquranCloud(surahNumber: number): Promise<SurahDetai
             hizbQuarter: ayah.hizbQuarter,
             sajda: ayah.sajda,
             translation: translationData.ayahs[index].text,
-            tafseer: '', // Fallback doesn't have tafseer
         }));
 
         return {
