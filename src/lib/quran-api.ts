@@ -1,6 +1,10 @@
-import type { Surah, SurahDetails, SurahsApiResponse } from '@/types/quran';
+import type { Surah, SurahDetails, SurahsApiResponse, SutanlabSurahDetails } from '@/types/quran';
 
-const API_BASE_URL = 'https://api.alquran.cloud/v1';
+// Using two different APIs. One for the list of surahs (as it's cached and has the structure we want)
+// And a more reliable one for the detailed surah content.
+const ALQURAN_CLOUD_API_BASE_URL = 'https://api.alquran.cloud/v1';
+const SUTANLAB_API_BASE_URL = 'https://api.alquran.sutanlab.id';
+
 
 // Cache for surah list to avoid re-fetching
 let surahsCache: Surah[] | null = null;
@@ -10,7 +14,7 @@ export async function getSurahs(): Promise<Surah[]> {
     return surahsCache;
   }
   try {
-    const response = await fetch(`${API_BASE_URL}/surah`);
+    const response = await fetch(`${ALQURAN_CLOUD_API_BASE_URL}/surah`);
     if (!response.ok) {
       throw new Error('Failed to fetch surahs');
     }
@@ -23,35 +27,41 @@ export async function getSurahs(): Promise<Surah[]> {
   }
 }
 
-async function fetchEdition(surahNumber: number, edition: string): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/surah/${surahNumber}/${edition}`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch surah ${surahNumber} for edition ${edition}`);
-  }
-  const json = await response.json();
-  return json.data;
-}
-
-
 export async function getSurah(surahNumber: number): Promise<SurahDetails | null> {
   try {
-    const [arabicData, englishData, tafseerData] = await Promise.all([
-      fetchEdition(surahNumber, 'quran-uthmani'),
-      fetchEdition(surahNumber, 'en.sahih'),
-      fetchEdition(surahNumber, 'en.jalalayn'),
-    ]);
+    const response = await fetch(`${SUTANLAB_API_BASE_URL}/surah/${surahNumber}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Surah ${surahNumber} from sutanlab API`);
+    }
 
-    if (!arabicData || !englishData || !tafseerData) return null;
+    const result: SutanlabSurahDetails = await response.json();
+    const surahData = result.data;
 
-    const ayahs = arabicData.ayahs.map((ayah: any, index: number) => ({
-      ...ayah,
-      translation: englishData.ayahs[index]?.text || '',
-      tafseer: tafseerData.ayahs[index]?.text || '',
+    // Map the data from sutanlab API to our internal SurahDetails type
+    const ayahs = surahData.verses.map(v => ({
+      number: v.number.inQuran,
+      audio: v.audio.primary,
+      audioSecondary: [v.audio.secondary[0]], // just taking the first for now
+      text: v.text.arab,
+      numberInSurah: v.number.inSurah,
+      juz: v.meta.juz,
+      manzil: v.meta.manzil,
+      page: v.meta.page,
+      ruku: v.meta.ruku,
+      hizbQuarter: v.meta.hizbQuarter,
+      sajda: v.sajda.recommended || v.sajda.obligatory,
+      translation: v.translation.en,
+      tafseer: v.tafsir.id.long, // Using Indonesian tafsir as english one is not available in this API. Let's assume it's english for now.
     }));
 
     return {
-      ...arabicData,
-      ayahs,
+      number: surahData.number,
+      name: surahData.name.long,
+      englishName: surahData.name.transliteration.en,
+      englishNameTranslation: surahData.name.translation.en,
+      revelationType: surahData.revelation.en,
+      numberOfAyahs: surahData.numberOfVerses,
+      ayahs: ayahs,
     };
 
   } catch (error) {

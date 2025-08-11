@@ -29,7 +29,7 @@ export function TafseerDisplay({ surah }: TafseerDisplayProps) {
             <BookOpenCheck className="w-8 h-8 text-primary" />
             <div>
                 <CardTitle className="text-3xl font-headline">Tafseer</CardTitle>
-                <CardDescription>Commentary on Surah {surah.englishName} (Tafsir al-Jalalayn)</CardDescription>
+                <CardDescription>Commentary on Surah {surah.englishName} (Tafsir Al-Jalalain - Indonesian)</CardDescription>
             </div>
         </div>
       </CardHeader>
