@@ -8,75 +8,26 @@ import { SurahBookView } from './SurahBookView';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookText, Download, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { getSurah } from '@/lib/quran-api';
 import React from 'react';
-import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { createRoot } from 'react-dom/client';
 
 interface SurahDisplayProps {
-  surahNumber: number;
+  surah: SurahDetails;
 }
 
 
-function SurahDisplaySkeleton() {
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <Skeleton className="h-10 w-48 mb-2" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-            <Skeleton className="h-10 w-24" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-end mb-6">
-            <Skeleton className="h-8 w-56" />
-          </div>
-          <Separator className="mb-6" />
-          <div className="space-y-6">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="space-y-4 py-4 border-b border-border last:border-b-0">
-                <div className="flex justify-between items-start gap-4">
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                  <div className="flex-grow space-y-2">
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-8 w-3/4" />
-                  </div>
-                </div>
-                <div className="pl-12">
-                   <Skeleton className="h-6 w-full" />
-                   <Skeleton className="h-6 w-1/2 mt-2" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
-  const [surah, setSurah] = useState<SurahDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function SurahDisplay({ surah }: SurahDisplayProps) {
   const [isBookView, setIsBookView] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-
+  // Reset book view if surah changes
   useEffect(() => {
-    setIsLoading(true);
-    getSurah(surahNumber)
-      .then(data => {
-        setSurah(data);
-        setIsLoading(false);
-      })
-      .catch(() => setIsLoading(false));
-  }, [surahNumber]);
+    setIsBookView(false);
+  }, [surah]);
 
 
   const handleFullscreenChange = () => {
@@ -95,13 +46,16 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     if (!element) return;
 
     if (!isBookView) {
-        if (element.requestFullscreen) {
-            await element.requestFullscreen().catch(err => {
-              console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-              setIsBookView(true);
-            });
+        try {
+            if (element.requestFullscreen) {
+                await element.requestFullscreen();
+            }
+            setIsBookView(true);
+        } catch (err) {
+            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            // Fallback for browsers that don't support fullscreen API or if it fails
+            setIsBookView(true); 
         }
-        setIsBookView(true);
     } else {
         if (document.fullscreenElement) {
             await document.exitFullscreen();
@@ -152,28 +106,30 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
             root.render(
               <PrintablePage ref={printablePageRef} pageAyahs={page.ayahs} surahName={surah.englishName} pageNumber={page.pageNumber} />,
               () => {
-                setTimeout(resolve, 500);
+                setTimeout(resolve, 500); // Give it time to render fonts
               }
             );
         });
-
-        const canvas = await html2canvas(printablePageRef.current!, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: null,
-          width: 800,
-          height: 1200,
-        });
         
-        const imgData = canvas.toDataURL('image/png');
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, 0, 800, 1200);
+        if (printablePageRef.current) {
+            const canvas = await html2canvas(printablePageRef.current, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: null,
+              width: 800,
+              height: 1200,
+            });
+            
+            const imgData = canvas.toDataURL('image/png');
+            if (i > 0) pdf.addPage([800, 1200], 'portrait');
+            pdf.addImage(imgData, 'PNG', 0, 0, 800, 1200);
 
-        pdf.setFontSize(10);
-        pdf.setTextColor(150);
-        pdf.text('by Noor Al Quran', 400, 1150, { align: 'center' });
-        pdf.setTextColor(0, 0, 255);
-        pdf.textWithLink('https://noor-al-quran.vercel.app/', 400, 1170, {url: 'https://noor-al-quran.vercel.app/', align: 'center'});
+            pdf.setFontSize(10);
+            pdf.setTextColor(150);
+            pdf.text('by Noor Al Quran', 400, 1150, { align: 'center' });
+            pdf.setTextColor(0, 0, 255);
+            pdf.textWithLink('https://noor-al-quran.vercel.app/', 400, 1170, {url: 'https://noor-al-quran.vercel.app/', align: 'center'});
+        }
 
     }
     
@@ -184,21 +140,6 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     setIsGeneratingPdf(false);
   };
   
-  if (isLoading) {
-    return <SurahDisplaySkeleton />;
-  }
-
-  if (!surah) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Surah Not Found</CardTitle>
-          <CardDescription>The requested Surah could not be loaded. Please try again.</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
   return (
     <div ref={containerRef} className="w-full h-full bg-background">
       {isBookView ? (
@@ -233,7 +174,7 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
                 <Separator className="mb-6" />
                 <AyahCard 
                   ayahs={surah.ayahs} 
-                  surahNumber={surahNumber} 
+                  surahNumber={surah.number} 
                   showTranslation={true} 
                 />
               </CardContent>

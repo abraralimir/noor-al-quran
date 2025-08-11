@@ -1,11 +1,13 @@
 
-import { getSurahs } from '@/lib/quran-api';
+
+import { getSurahs, getSurah } from '@/lib/quran-api';
 import { SurahList } from '@/components/quran/SurahList';
 import { SurahDisplay } from '@/components/quran/SurahDisplay';
 import { Sidebar, SidebarContent, SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Metadata, ResolvingMetadata } from 'next';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 type Props = {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -51,7 +53,11 @@ export default async function ReadPage({
   searchParams?: { surah?: string };
 }) {
   const surahNumber = Number(searchParams?.surah) || 1;
-  const surahs = await getSurahs();
+  // Fetch both the list of surahs and the detailed content of the selected surah.
+  const [surahs, surahDetails] = await Promise.all([
+    getSurahs(),
+    getSurah(surahNumber)
+  ]);
 
   return (
     <SidebarProvider>
@@ -70,7 +76,16 @@ export default async function ReadPage({
               <h1 className="text-2xl font-headline font-bold">Read Quran</h1>
             </div>
             <Suspense fallback={<SurahDisplaySkeleton />}>
-              <SurahDisplay surahNumber={surahNumber} />
+              {surahDetails ? (
+                <SurahDisplay surah={surahDetails} />
+              ) : (
+                 <Card>
+                    <CardHeader>
+                      <CardTitle>Surah Not Found</CardTitle>
+                      <CardDescription>The requested Surah could not be loaded. Please try again.</CardDescription>
+                    </CardHeader>
+                  </Card>
+              )}
             </Suspense>
           </div>
         </SidebarInset>
