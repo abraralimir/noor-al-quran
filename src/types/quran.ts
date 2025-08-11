@@ -1,3 +1,4 @@
+
 export interface Surah {
   number: number;
   name: string;
@@ -26,9 +27,50 @@ export interface SurahDetails extends Surah {
   ayahs: Ayah[];
 }
 
-// This is the type for the Al-Quran cloud API when we request multiple editions
-export interface AlquranCloudSurahDetails {
-  code: number;
-  status: string;
-  data: SurahDetails[];
+// Types for the new quranapi.pages.dev API
+export interface SutanlabSurah {
+    number: number;
+    name: string;
+    englishName: string;
+    englishNameTranslation: string;
+    revelation: string;
+    numberOfAyahs: number;
+}
+
+export interface SutanlabSurahDetails {
+    number: number;
+    name: string;
+    englishName: string;
+    englishNameTranslation: string;
+    revelation: string;
+    numberOfAyahs: number;
+    ayahs: SutanlabAyah[];
+}
+
+export interface SutanlabAyah {
+    number: {
+        inQuran: number;
+        inSurah: number;
+    };
+    text: {
+        arab: string;
+    };
+    translation: {
+        en: string;
+    };
+    audio: {
+        primary: string;
+        secondary: string[];
+    };
+    meta: {
+        juz: number;
+        page: number;
+        manzil: number;
+        ruku: number;
+        hizbQuarter: number;
+        sajda: {
+            recommended: boolean;
+            obligatory: boolean;
+        };
+    };
 }
