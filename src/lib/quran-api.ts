@@ -59,7 +59,10 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
         const translatedAyahs = translationData.translations;
 
         // Create a map for quick lookup of translations by verse number
-        const translationMap = new Map(translatedAyahs.map((t: any) => [t.verse_number, t.text]));
+        const translationMap = new Map(translatedAyahs.map((t: any) => {
+            const verseNumber = parseInt(t.verse_key.split(':')[1], 10);
+            return [verseNumber, t.text];
+        }));
 
         // Step 4: Combine the data
         const ayahs: Ayah[] = arabicAyahs.map((ayah: any) => {
