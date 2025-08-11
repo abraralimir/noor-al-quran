@@ -2,15 +2,13 @@
 'use client';
 
 import { LearningCard } from '@/components/kids/LearningCard';
-import { Card } from '@/components/ui/card';
 import { useTranslation } from '@/hooks/use-translation';
-import { arabicAlphabet, arabicNumbers } from '@/lib/kids-data';
-import { BookMarked, Hash } from 'lucide-react';
-import Image from 'next/image';
+import { arabicAlphabet, nooraniQaida } from '@/lib/kids-data';
+import { BookMarked, BookAudio } from 'lucide-react';
 
 const sectionColors = {
   letters: 'from-sky-400 to-blue-500',
-  numbers: 'from-amber-400 to-orange-500',
+  qaida: 'from-emerald-400 to-teal-500',
 };
 
 export default function KidsPage() {
@@ -42,24 +40,27 @@ export default function KidsPage() {
               character={item.letter}
               name={item.name}
               gradient={sectionColors.letters}
+              audioSrc={item.audioSrc}
             />
           ))}
         </div>
       </section>
 
-      {/* Arabic Numbers Section */}
+      {/* Noorani Qaida Section */}
       <section>
-        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r ${sectionColors.numbers} text-white shadow-lg`}>
-          <Hash className="w-10 h-10" />
-          <h2 className="text-3xl font-headline font-bold">{t('learnArabicNumbers')}</h2>
+        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r ${sectionColors.qaida} text-white shadow-lg`}>
+          <BookAudio className="w-10 h-10" />
+          <h2 className="text-3xl font-headline font-bold">{t('learnNooraniQaida')}</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-          {arabicNumbers.map((item) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {nooraniQaida.map((item) => (
             <LearningCard
-              key={`${item.name}-${item.number}`}
-              character={item.number}
-              name={item.name}
-              gradient={sectionColors.numbers}
+              key={item.title}
+              name={item.title}
+              description={item.description}
+              gradient={sectionColors.qaida}
+              audioSrc={item.audioSrc}
+              isQaida={true}
             />
           ))}
         </div>
