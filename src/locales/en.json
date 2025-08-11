@@ -16,6 +16,7 @@
   "read": "Read",
   "listen": "Listen",
   "tutor": "Tutor",
+  "kids": "Kids",
   "listenToTheQuran": "Listen to the Quran",
   "listenToTheQuranDescription": "Select a Surah to listen to the beautiful recitation by Mishary Rashid Alafasy.",
   "loadingAudioPlayer": "Loading audio player...",
@@ -48,5 +49,18 @@
   "surahNotFoundDescription": "The requested Surah could not be loaded. Please try again.",
   "bookView": "Book View",
   "tutorPageDescription": "Ask questions about the Quran. Our AI tutor, Noor, is here to help you learn.",
-  "tutorInputPlaceholder": "Ask about the Quran..."
+  "tutorInputPlaceholder": "Ask about the Quran...",
+  "kidsCornerTitle": "Kids Corner",
+  "kidsCornerDescription": "A fun and safe place for kids to learn about the Quran with interactive stories and activities.",
+  "kidsImageAlt": "Illustration of happy, diverse children reading a book together under a tree.",
+  "kidsStoriesTitle": "Quran Stories",
+  "kidsStoriesDescription": "Explore beautifully illustrated and simply told stories of the prophets and important events.",
+  "kidsStoriesButton": "Read Stories",
+  "kidsQuizzesTitle": "Fun Quizzes",
+  "kidsQuizzesDescription": "Test your knowledge with fun, interactive quizzes about the Quran and its teachings.",
+  "kidsQuizzesButton": "Start Quiz",
+  "kidsColoringTitle": "Coloring Fun",
+  "kidsColoringDescription": "Get creative with printable coloring pages of mosques, calligraphy, and more.",
+  "kidsColoringButton": "Start Coloring",
+  "comingSoon": "Coming Soon"
 }
