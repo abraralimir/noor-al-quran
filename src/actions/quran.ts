@@ -4,7 +4,6 @@
 import { quranNavigator } from '@/ai/flows/quran-navigator';
 import { quranTutor } from '@/ai/flows/quran-tutor';
 import { getSurahs } from '@/lib/quran-api';
-import { useLanguage } from '@/hooks/use-translation';
 
 interface NavigationResult {
   path?: string;
