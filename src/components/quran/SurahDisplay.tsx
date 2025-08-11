@@ -142,11 +142,12 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
     printNode.style.width = '800px';
     printNode.style.height = '1200px';
 
+    const root = createRoot(printNode);
+
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
         const printablePageRef = React.createRef<HTMLDivElement>();
 
-        const root = createRoot(printNode);
         await new Promise<void>(resolve => {
             root.render(
               <PrintablePage ref={printablePageRef} pageAyahs={page.ayahs} surahName={surah.englishName} pageNumber={page.pageNumber} />,
@@ -174,9 +175,9 @@ export function SurahDisplay({ surahNumber }: SurahDisplayProps) {
         pdf.setTextColor(0, 0, 255);
         pdf.textWithLink('https://noor-al-quran.vercel.app/', 400, 1170, {url: 'https://noor-al-quran.vercel.app/', align: 'center'});
 
-        root.unmount();
     }
     
+    root.unmount();
     document.body.removeChild(printNode);
 
     pdf.save(`Surah-${surah.englishName.replace(/ /g, '-')}.pdf`);
@@ -263,7 +264,7 @@ const PrintablePage = forwardRef<HTMLDivElement, { pageAyahs: Ayah[], surahName:
             ))}
             </div>
         </div>
-        <div className="h-16"><!-- Footer space --></div>
+        <div className="h-16">{/* Footer space */}</div>
       </div>
     );
 });
