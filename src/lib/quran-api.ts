@@ -1,4 +1,3 @@
-
 import type { Surah, SurahDetails, Ayah } from '@/types/quran';
 
 const ALQURAN_CLOUD_API_BASE_URL = 'https://api.alquran.cloud/v1';
@@ -46,16 +45,17 @@ export async function getSurahs(): Promise<Surah[]> {
 }
 
 // Fetches details for a single Surah.
-export async function getSurah(surahNumber: number): Promise<SurahDetails | null> {
+export async function getSurah(surahNumber: number, lang: string = 'en'): Promise<SurahDetails | null> {
     try {
-        const response = await fetch(`${ALQURAN_CLOUD_API_BASE_URL}/surah/${surahNumber}/editions/quran-uthmani,en.sahih`);
+        const translationEdition = lang === 'ur' ? 'ur.maududi' : 'en.sahih';
+        const response = await fetch(`${ALQURAN_CLOUD_API_BASE_URL}/surah/${surahNumber}/editions/quran-uthmani,${translationEdition}`);
         if (!response.ok) {
             throw new Error(`Failed to fetch Surah ${surahNumber} from api.alquran.cloud`);
         }
         const data = await response.json();
 
         const arabicEdition = data.data[0];
-        const translationEdition = data.data[1];
+        const translationEditionData = data.data[1];
 
         const ayahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
             number: ayah.number,
@@ -69,7 +69,7 @@ export async function getSurah(surahNumber: number): Promise<SurahDetails | null
             ruku: ayah.ruku,
             hizbQuarter: ayah.hizbQuarter,
             sajda: ayah.sajda,
-            translation: translationEdition.ayahs[index]?.text || 'Translation not found.',
+            translation: translationEditionData.ayahs[index]?.text || 'Translation not found.',
         }));
 
         return {

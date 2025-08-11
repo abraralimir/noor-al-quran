@@ -8,6 +8,7 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Metadata, ResolvingMetadata } from 'next';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { cookies } from 'next/headers';
 
 type Props = {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -53,10 +54,13 @@ export default async function ReadPage({
   searchParams?: { surah?: string };
 }) {
   const surahNumber = Number(searchParams?.surah) || 1;
+  const cookieStore = cookies();
+  const lang = cookieStore.get('lang')?.value || 'en';
+
   // Fetch both the list of surahs and the detailed content of the selected surah.
   const [surahs, surahDetails] = await Promise.all([
     getSurahs(),
-    getSurah(surahNumber)
+    getSurah(surahNumber, lang)
   ]);
 
   return (

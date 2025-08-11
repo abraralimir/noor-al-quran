@@ -14,6 +14,7 @@ export default {
         headline: ['Alegreya', 'serif'],
         code: ['Source Code Pro', 'monospace'],
         arabic: ['"Traditional Arabic"', 'serif'],
+        urdu: ['"Noto Naskh Arabic"', 'serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

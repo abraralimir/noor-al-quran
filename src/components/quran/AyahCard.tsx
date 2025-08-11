@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -6,6 +5,8 @@ import type { Ayah } from '@/types/quran';
 import { getAyahAudioUrl } from '@/lib/quran-api';
 import { Button } from '@/components/ui/button';
 import { Play, Pause } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
 
 interface AyahCardProps {
   ayahs: Ayah[];
@@ -16,6 +17,7 @@ interface AyahCardProps {
 export function AyahCard({ ayahs, surahNumber, showTranslation }: AyahCardProps) {
   const [playingAyah, setPlayingAyah] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { language } = useLanguage();
 
   const handlePlay = (ayahNumber: number) => {
     const uniqueAyahKey = ayahNumber;
@@ -59,7 +61,8 @@ export function AyahCard({ ayahs, surahNumber, showTranslation }: AyahCardProps)
           </div>
 
           {showTranslation && (
-            <p className="text-muted-foreground pl-12">
+            <p className={cn("text-muted-foreground pl-12", language === 'ur' ? 'text-right font-urdu' : '')}
+               dir={language === 'ur' ? 'rtl' : 'ltr'}>
               {ayah.translation}
             </p>
           )}

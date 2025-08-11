@@ -1,8 +1,7 @@
-
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Headphones, MessageCircle, Moon, Sun } from 'lucide-react';
+import { BookOpen, Headphones, MessageCircle, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AiSearch } from './AiSearch';
@@ -12,6 +11,7 @@ const navLinks = [
   { href: '/read', label: 'Read', icon: BookOpen },
   { href: '/listen', label: 'Listen', icon: Headphones },
   { href: '/tutor', label: 'Tutor', icon: MessageCircle },
+  { href: '/translate', label: 'Translate', icon: Globe },
 ];
 
 export function Header() {
