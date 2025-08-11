@@ -1,83 +1,83 @@
 
 'use client';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTranslation } from "@/hooks/use-translation";
-import { BookHeart, Puzzle, Palette } from "lucide-react";
-import Image from "next/image";
+import { LearningCard } from '@/components/kids/LearningCard';
+import { Card } from '@/components/ui/card';
+import { useTranslation } from '@/hooks/use-translation';
+import { arabicAlphabet, arabicNumbers } from '@/lib/kids-data';
+import { BookMarked, Hash } from 'lucide-react';
+import Image from 'next/image';
+
+const sectionColors = {
+  letters: 'from-sky-400 to-blue-500',
+  numbers: 'from-amber-400 to-orange-500',
+};
 
 export default function KidsPage() {
   const { t } = useTranslation();
 
-  const features = [
-    {
-      icon: BookHeart,
-      title: t('kidsStoriesTitle'),
-      description: t('kidsStoriesDescription'),
-      buttonText: t('kidsStoriesButton'),
-      comingSoon: true,
-    },
-    {
-      icon: Puzzle,
-      title: t('kidsQuizzesTitle'),
-      description: t('kidsQuizzesDescription'),
-      buttonText: t('kidsQuizzesButton'),
-      comingSoon: true,
-    },
-    {
-      icon: Palette,
-      title: t('kidsColoringTitle'),
-      description: t('kidsColoringDescription'),
-      buttonText: t('kidsColoringButton'),
-      comingSoon: true,
-    }
-  ];
-
   return (
-    <div className="space-y-12">
-      <section className="text-center">
-        <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary mb-4">
-          {t('kidsCornerTitle')}
-        </h1>
-        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-          {t('kidsCornerDescription')}
-        </p>
+    <div className="space-y-16">
+      <section className="text-center relative rounded-2xl overflow-hidden p-8 bg-gradient-to-br from-pink-400 to-purple-500 shadow-2xl">
+        <div className="absolute inset-0 opacity-20">
+             <Image
+                src="https://placehold.co/1000x400.png"
+                alt={t('kidsImageAlt')}
+                fill
+                priority
+                style={{ objectFit: 'cover' }}
+                className="opacity-90"
+                data-ai-hint="abstract patterns kids"
+             />
+        </div>
+        <div className="relative">
+            <h1 className="text-4xl md:text-6xl font-headline font-extrabold text-white drop-shadow-lg mb-4">
+            {t('kidsCornerTitle')}
+            </h1>
+            <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto">
+            {t('kidsCornerDescription')}
+            </p>
+        </div>
       </section>
 
-      <section className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden shadow-2xl">
-        <Image
-          src="https://placehold.co/1000x400.png"
-          alt={t('kidsImageAlt')}
-          fill
-          priority
-          style={{ objectFit: 'cover' }}
-          className="opacity-90"
-          data-ai-hint="happy children reading"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+      {/* Arabic Letters Section */}
+      <section>
+        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r ${sectionColors.letters} text-white shadow-lg`}>
+          <BookMarked className="w-10 h-10" />
+          <h2 className="text-3xl font-headline font-bold">{t('learnArabicLetters')}</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          {arabicAlphabet.map((item) => (
+            <LearningCard
+              key={item.name}
+              character={item.letter}
+              name={item.name}
+              imageSrc={item.imageSrc}
+              dataAiHint={item.dataAiHint}
+              gradient={sectionColors.letters}
+            />
+          ))}
+        </div>
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-        {features.map((feature) => (
-          <Card key={feature.title} className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 flex flex-col">
-            <CardHeader className="flex-grow">
-              <div className="mx-auto bg-accent/20 p-4 rounded-full w-fit">
-                <feature.icon className="w-10 h-10 text-accent-foreground" />
-              </div>
-              <CardTitle className="font-headline mt-4">{feature.title}</CardTitle>
-              <CardDescription>
-                {feature.description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-               {feature.comingSoon && <div className="text-xs font-bold uppercase text-primary mb-2">{t('comingSoon')}</div>}
-              <Button variant="default" className="bg-primary hover:bg-primary/90" disabled={feature.comingSoon}>
-                {feature.buttonText}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Arabic Numbers Section */}
+      <section>
+        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r ${sectionColors.numbers} text-white shadow-lg`}>
+          <Hash className="w-10 h-10" />
+          <h2 className="text-3xl font-headline font-bold">{t('learnArabicNumbers')}</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          {arabicNumbers.map((item) => (
+            <LearningCard
+              key={item.name}
+              character={item.number}
+              name={item.name}
+              imageSrc={item.imageSrc}
+              dataAiHint={item.dataAiHint}
+              gradient={sectionColors.numbers}
+            />
+          ))}
+        </div>
       </section>
     </div>
   );
