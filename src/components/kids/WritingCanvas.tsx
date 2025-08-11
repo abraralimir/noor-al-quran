@@ -34,9 +34,9 @@ export function WritingCanvas() {
             }
         }
         
-        // Preload audio files
-        correctAudioRef.current = new Audio('/audio/correct.mp3');
-        incorrectAudioRef.current = new Audio('/audio/incorrect.mp3');
+        // Preload audio files from public URLs
+        correctAudioRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_2b08a5e994.mp3');
+        incorrectAudioRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/10/audio_c848a6a222.mp3');
     }, []);
 
     const playAudio = (type: 'correct' | 'incorrect') => {
