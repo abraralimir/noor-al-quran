@@ -51,7 +51,11 @@
   "tutorPageDescription": "Ask questions about the Quran. Our AI tutor, Noor, is here to help you learn.",
   "tutorInputPlaceholder": "Ask about the Quran...",
   "kidsCornerTitle": "Kids Corner",
-  "kidsCornerDescription": "A fun and safe place for kids to learn about the Quran with interactive stories and activities.",
+  "kidsCornerDescription": "A fun and safe place for kids to learn about the Quran with interactive activities.",
   "learnArabicLetters": "Learn Arabic Letters",
-  "learnNooraniQaida": "Learn Noorani Qaida"
+  "learnNooraniQaida": "Learn Noorani Qaida",
+  "writingInstructorTitle": "AI Writing Instructor",
+  "kidsCardTitle": "Kids Corner",
+  "kidsCardDescription": "Fun, interactive games and lessons for young learners, including an AI writing tutor.",
+  "goToKidsCorner": "Go to Kids Corner"
 }

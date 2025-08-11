@@ -5,7 +5,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "@/hooks/use-translation";
-import { BookOpen, Headphones, MessageCircleQuestion } from "lucide-react";
+import { BookOpen, Headphones, MessageCircleQuestion, ToyBrick } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -37,9 +37,9 @@ export default function Home() {
       </section>
 
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-        <Card className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1">
-          <CardHeader>
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+        <Card className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 flex flex-col">
+          <CardHeader className="flex-grow">
             <div className="mx-auto bg-accent/20 p-4 rounded-full w-fit">
               <BookOpen className="w-10 h-10 text-accent-foreground" />
             </div>
@@ -55,8 +55,8 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1">
-          <CardHeader>
+        <Card className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 flex flex-col">
+          <CardHeader className="flex-grow">
             <div className="mx-auto bg-accent/20 p-4 rounded-full w-fit">
               <Headphones className="w-10 h-10 text-accent-foreground" />
             </div>
@@ -72,8 +72,8 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1">
-          <CardHeader>
+        <Card className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 flex flex-col">
+          <CardHeader className="flex-grow">
             <div className="mx-auto bg-accent/20 p-4 rounded-full w-fit">
               <MessageCircleQuestion className="w-10 h-10 text-accent-foreground" />
             </div>
@@ -85,6 +85,23 @@ export default function Home() {
           <CardContent>
             <Button asChild variant="default" className="bg-primary hover:bg-primary/90">
               <Link href={`/${language}/tutor`}>{t('askAQuestion')}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 flex flex-col">
+          <CardHeader className="flex-grow">
+            <div className="mx-auto bg-accent/20 p-4 rounded-full w-fit">
+              <ToyBrick className="w-10 h-10 text-accent-foreground" />
+            </div>
+            <CardTitle className="font-headline mt-4">{t('kidsCardTitle')}</CardTitle>
+            <CardDescription>
+              {t('kidsCardDescription')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="default" className="bg-primary hover:bg-primary/90">
+              <Link href={`/${language}/kids`}>{t('goToKidsCorner')}</Link>
             </Button>
           </CardContent>
         </Card>

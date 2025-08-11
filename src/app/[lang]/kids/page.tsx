@@ -2,13 +2,15 @@
 'use client';
 
 import { LearningCard } from '@/components/kids/LearningCard';
+import { WritingCanvas } from '@/components/kids/WritingCanvas';
 import { useTranslation } from '@/hooks/use-translation';
 import { arabicAlphabet, nooraniQaida } from '@/lib/kids-data';
-import { BookMarked, BookAudio } from 'lucide-react';
+import { BookMarked, BookAudio, Pencil } from 'lucide-react';
 
 const sectionColors = {
   letters: 'from-sky-400 to-blue-500',
   qaida: 'from-emerald-400 to-teal-500',
+  writing: 'from-amber-400 to-orange-500',
 };
 
 export default function KidsPage() {
@@ -25,6 +27,15 @@ export default function KidsPage() {
             {t('kidsCornerDescription')}
             </p>
         </div>
+      </section>
+      
+      {/* AI Writing Instructor Section */}
+      <section>
+        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r ${sectionColors.writing} text-white shadow-lg`}>
+          <Pencil className="w-10 h-10" />
+          <h2 className="text-3xl font-headline font-bold">{t('writingInstructorTitle')}</h2>
+        </div>
+        <WritingCanvas />
       </section>
 
       {/* Arabic Letters Section */}
