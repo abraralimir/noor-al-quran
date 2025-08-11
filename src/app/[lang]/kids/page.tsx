@@ -19,17 +19,6 @@ export default function KidsPage() {
   return (
     <div className="space-y-16">
       <section className="text-center relative rounded-2xl overflow-hidden p-8 bg-gradient-to-br from-pink-400 to-purple-500 shadow-2xl">
-        <div className="absolute inset-0 opacity-20">
-             <Image
-                src="https://placehold.co/1000x400.png"
-                alt={t('kidsImageAlt')}
-                fill
-                priority
-                style={{ objectFit: 'cover' }}
-                className="opacity-90"
-                data-ai-hint="abstract patterns kids"
-             />
-        </div>
         <div className="relative">
             <h1 className="text-4xl md:text-6xl font-headline font-extrabold text-white drop-shadow-lg mb-4">
             {t('kidsCornerTitle')}
