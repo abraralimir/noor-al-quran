@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { LanguageProvider } from '@/contexts/LanguageContext';
 
 export default function RootLayout({
@@ -22,6 +23,7 @@ export default function RootLayout({
               {children}
               <Toaster />
               <Analytics />
+              <SpeedInsights />
           </LanguageProvider>
       </body>
     </html>
