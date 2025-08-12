@@ -18,11 +18,8 @@ function TafseerPageSkeleton({ lang }: { lang: 'en' | 'ur' }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
             <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-          <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-48 w-full mt-4" />
         </div>
       </CardContent>
     </Card>

@@ -60,12 +60,14 @@
   "kidsCardDescription": "نوجوان سیکھنے والوں کے لیے تفریحی، انٹرایکٹو گیمز اور اسباق، بشمول AI تحریری ٹیوٹر۔",
   "goToKidsCorner": "بچوں کے کارنر پر جائیں",
   "tafseerPageTitle": "قرآن کی تفسیر",
-  "tafseerPageDescription": "قرآنی آیات کے معانی اور تشریحات کو دریافت کریں۔",
-  "selectSurahForTafseer": "تفسیر دیکھنے کے لیے ایک سورت منتخب کریں۔",
+  "tafseerPageDescription": "آڈیو اور متن کے ذریعے قرآنی آیات کے معانی اور تشریحات کو دریافت کریں۔",
+  "selectSurahForTafseer": "تفسیر سننے کے لیے ایک سورت منتخب کریں۔",
   "selectSurahPlaceholder": "ایک سورت منتخب کریں",
   "tafseerBy": "تفسیر از",
-  "tafseerCardTitle": "تفسیر",
-  "tafseerCardDescription": "کسی بھی سورت کی تفصیلی وضاحتیں اور تشریحات حاصل کریں۔",
+  "tafseerCardTitle": "آڈیو تفسیر",
+  "tafseerCardDescription": "اردو یا انگریزی میں مشہور علماء کی تفصیلی وضاحتیں سنیں۔",
   "exploreTafseer": "تفسیر دریافت کریں",
-  "error": "خرابی"
+  "error": "خرابی",
+  "ayah": "آیت",
+  "readTafseer": "تفسیر پڑھیں"
 }

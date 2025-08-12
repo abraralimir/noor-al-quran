@@ -60,12 +60,14 @@
   "kidsCardDescription": "Fun, interactive games and lessons for young learners, including an AI writing tutor.",
   "goToKidsCorner": "Go to Kids Corner",
   "tafseerPageTitle": "Quran Tafseer",
-  "tafseerPageDescription": "Explore the meanings and explanations of the Quranic verses.",
-  "selectSurahForTafseer": "Select a Surah to view its Tafseer",
+  "tafseerPageDescription": "Explore the meanings and explanations of the Quranic verses through audio and text.",
+  "selectSurahForTafseer": "Select a Surah to listen to its Tafseer",
   "selectSurahPlaceholder": "Select a Surah",
   "tafseerBy": "Tafseer by",
-  "tafseerCardTitle": "Tafseer",
-  "tafseerCardDescription": "Get detailed explanations and interpretations of any Surah.",
+  "tafseerCardTitle": "Audio Tafseer",
+  "tafseerCardDescription": "Listen to detailed explanations by renowned scholars in English or Urdu.",
   "exploreTafseer": "Explore Tafseer",
-  "error": "Error"
+  "error": "Error",
+  "ayah": "Ayah",
+  "readTafseer": "Read Tafseer"
 }

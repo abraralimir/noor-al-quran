@@ -5,6 +5,7 @@ import { quranNavigator } from '@/ai/flows/quran-navigator';
 import { quranTutor } from '@/ai/flows/quran-tutor';
 import { writingInstructor } from '@/ai/flows/writing-instructor';
 import { getSurahs } from '@/lib/quran-api';
+import { selectTafseerAudio } from '@/ai/flows/tafseer-audio-selector';
 
 interface NavigationResult {
   path?: string;
@@ -97,44 +98,54 @@ export async function handleWritingSubmission(imageDataUri: string, letter: stri
 
 
 export interface TafseerAyah {
-  ayah_number: number;
-  ayah_text: string;
-  tafseer_text: string;
+  ayah: number;
+  text: string;
 }
 
 export interface Tafseer {
   tafseer_id: number;
   tafseer_name: string;
   surah_name: string;
+  surah_number: number;
   ayahs: TafseerAyah[];
+  audioUrl?: string;
 }
 
+
 export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): Promise<Tafseer | null> {
-    const edition = lang === 'en' ? 'en-tafisr-ibn-kathir' : 'ur-tafsir-bayan-ul-quran';
-    const baseUrl = `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir`;
+    const tafseerEditionId = lang === 'en' ? 169 : 159; // 169: Ibn Kathir (en), 159: Dr. Israr (ur)
+    const baseUrl = `https://quran-tafseer.com/api`;
     
     try {
-        const url = `${baseUrl}/${edition}/${surahNumber}.json`;
+        const url = `${baseUrl}/tafseer/${tafseerEditionId}/${surahNumber}`;
         const response = await fetch(url);
+        
         if (!response.ok) {
-            throw new Error(`Failed to fetch Tafseer for Surah ${surahNumber} from ${url}`);
+            console.error(`Failed to fetch Tafseer for Surah ${surahNumber} from ${url}. Status: ${response.status}`);
+            return null;
         }
+        
         const data = await response.json();
 
-        const ayahs: TafseerAyah[] = data.tafsir.map((ayah: any) => ({
-            ayah_number: parseInt(ayah.ayah, 10),
-            ayah_text: ayah.text,
-            tafseer_text: ayah.tafsir,
+        // Get audio URL from our AI flow
+        const audioResponse = await selectTafseerAudio({ surahNumber, language: lang });
+        const audioUrl = audioResponse.audioUrl;
+
+        const ayahs: TafseerAyah[] = data.map((ayah: any) => ({
+            ayah: parseInt(ayah.ayah, 10),
+            text: ayah.text,
         }));
         
         return {
-          tafseer_id: data.id,
-          tafseer_name: data.name,
-          surah_name: data.surah_name,
+          tafseer_id: data[0].tafseer_id,
+          tafseer_name: data[0].tafseer_name,
+          surah_name: data[0].surah_name,
+          surah_number: data[0].surah_number,
           ayahs: ayahs,
+          audioUrl: audioUrl,
         };
     } catch (error) {
-        console.error('Error fetching surah tafseer:', error);
+        console.error('Error fetching or processing surah tafseer:', error);
         return null;
     }
 }
