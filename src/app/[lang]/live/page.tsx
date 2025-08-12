@@ -8,7 +8,7 @@ export default function LivePage() {
   const { t } = useTranslation();
 
   const meccaVideoId = 'ueIOUTyRS84';
-  const medinaVideoId = '0m9g-t_Hh1c';
+  const medinaVideoId = 'TpT8b8JFZ6E';
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
