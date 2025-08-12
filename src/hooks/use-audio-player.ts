@@ -25,6 +25,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
   const [isLoading, setIsLoading] = useState(false);
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isLive, setIsLive] = useState(false);
 
   useEffect(() => {
     onEndedRef.current = onEnded;
@@ -87,7 +88,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
     toast({
       variant: 'destructive',
       title: 'Audio Error',
-      description: 'Could not load the audio. Please try another Surah or check your connection.',
+      description: 'Could not load the audio. Please try another source or check your connection.',
     });
   }, [toast]);
 
@@ -116,23 +117,32 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
     };
 
     const onTimeUpdate = () => {
-      if (audio.duration) { // only update if duration is available
+      if (isFinite(audio.duration)) { // only update if duration is available and not live
           setProgress(audio.currentTime);
-          if ('mediaSession' in navigator && isFinite(audio.duration)) {
-            navigator.mediaSession.setPositionState?.({
-              duration: audio.duration,
-              playbackRate: audio.playbackRate,
-              position: audio.currentTime,
-            });
+          if ('mediaSession' in navigator) {
+            try {
+              navigator.mediaSession.setPositionState?.({
+                duration: audio.duration,
+                playbackRate: audio.playbackRate,
+                position: audio.currentTime,
+              });
+            } catch(e) {
+                // Ignore errors, some browsers have bugs with this API
+            }
           }
       }
     };
 
     const onDurationChange = () => {
-        if (isFinite(audio.duration)) {
-            setDuration(audio.duration);
-            setIsLoading(false);
+        const audioDuration = audio.duration;
+        if (isFinite(audioDuration)) {
+            setDuration(audioDuration);
+            setIsLive(false);
+        } else {
+            setDuration(0);
+            setIsLive(true);
         }
+        setIsLoading(false);
     };
     
     const onCanPlay = () => {
@@ -144,6 +154,8 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
     };
 
     const onWaiting = () => setIsLoading(true);
+    const onPlaying = () => setIsLoading(false);
+
 
     // Add listeners
     audio.addEventListener('play', onPlay);
@@ -153,13 +165,14 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
     audio.addEventListener('durationchange', onDurationChange);
     audio.addEventListener('canplay', onCanPlay);
     audio.addEventListener('waiting', onWaiting);
+    audio.addEventListener('playing', onPlaying);
     audio.addEventListener('error', onError);
 
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', play);
         navigator.mediaSession.setActionHandler('pause', pause);
-        navigator.mediaSession.setActionHandler('seekbackward', () => seek(-10));
-        navigator.mediaSession.setActionHandler('seekforward', () => seek(10));
+        navigator.mediaSession.setActionHandler('seekbackward', isLive ? null : () => seek(-10));
+        navigator.mediaSession.setActionHandler('seekforward', isLive ? null : () => seek(10));
     }
     
     return () => {
@@ -171,6 +184,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
       audio.removeEventListener('durationchange', onDurationChange);
       audio.removeEventListener('canplay', onCanPlay);
       audio.removeEventListener('waiting', onWaiting);
+      audio.removeEventListener('playing', onPlaying);
       audio.removeEventListener('error', onError);
 
       if ('mediaSession' in navigator) {
@@ -180,7 +194,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
         navigator.mediaSession.setActionHandler('seekforward', null);
       }
     }
-  }, [seek, setMediaSession, onError, play, pause]);
+  }, [seek, setMediaSession, onError, play, pause, isLive]);
   
   // Effect to handle source changes
   useEffect(() => {
@@ -198,6 +212,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
             setDuration(0);
             setIsPlaying(false);
             setIsLoading(false);
+            setIsLive(false);
         }
     }
   }, [src, pause]);
@@ -220,6 +235,7 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
 
 
   const formatTime = (time: number) => {
+    if (isLive) return 'Live';
     if (isNaN(time) || !isFinite(time) || time < 0) {
       return '0:00';
     }
@@ -228,5 +244,5 @@ export function useAudioPlayer({ src, autoplay = false, mediaMetadata, onEnded }
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
-  return { isPlaying, isLoading, duration, progress, togglePlayPause, seek, handleSliderChange, formatTime };
+  return { isPlaying, isLoading, duration, progress, togglePlayPause, seek, handleSliderChange, formatTime, isLive };
 }
