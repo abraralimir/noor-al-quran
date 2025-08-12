@@ -126,7 +126,7 @@ export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): P
 
         const ayahs: TafseerAyah[] = surahData.ayahs.map(ayah => ({
             ayah: ayah.numberInSurah,
-            text: ayah.translation, // Use translation as the tafseer text
+            text: ayah.translation || "No Tafseer text available for this Ayah.",
         }));
         
         return {
