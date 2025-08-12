@@ -7,7 +7,7 @@
   "readQuranCardDescription": "Immerse yourself in the holy text with a clean, readable interface and optional English translations.",
   "startReading": "Start Reading",
   "listenCardTitle": "Listen to Recitations",
-  "listenCardDescription": "Experience the divine verses through beautiful audio recitations by Sheikh Alafasy.",
+  "listenCardDescription": "Experience the divine verses through beautiful audio recitations by renowned reciters.",
   "listenNow": "Listen Now",
   "tutorCardTitle": "AI Quran Tutor",
   "tutorCardDescription": "Have your questions about the Quran answered by our knowledgeable AI assistant.",
@@ -77,5 +77,9 @@
   "livePageTitle": "Live from Mecca & Medina",
   "livePageDescription": "Watch the live broadcasts from the Holy Mosques in Mecca and Medina.",
   "liveFromMecca": "Live from Mecca",
-  "liveFromMedina": "Live from Medina"
+  "liveFromMedina": "Live from Medina",
+  "tuneIn": "Tune In",
+  "watchNow": "Watch Now",
+  "surahOfTheDay": "Surah of the Day",
+  "readSurah": "Read Surah"
 }

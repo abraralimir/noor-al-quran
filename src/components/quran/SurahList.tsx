@@ -26,6 +26,7 @@ export function SurahList({ surahs, activeSurah, title }: SurahListProps) {
               <li key={surah.number}>
                 <Link
                   href={`/${language}/read?surah=${surah.number}`}
+                  prefetch={false} // Prevents pre-fetching all 114 surah pages
                   className={cn(
                     "block p-3 rounded-lg transition-colors",
                     activeSurah === surah.number

@@ -7,7 +7,7 @@
   "readQuranCardDescription": "ایک صاف، پڑھنے کے قابل انٹرفیس اور اختیاری اردو ترجمے کے ساتھ مقدس متن میں غرق ہوجائیں۔",
   "startReading": "پڑھنا شروع کریں",
   "listenCardTitle": "تلاوت سنیں",
-  "listenCardDescription": "شیخ العفاسی کی خوبصورت آڈیو تلاوت کے ذریعے الہی آیات کا تجربہ کریں۔",
+  "listenCardDescription": "مشہور قاریوں کی خوبصورت آڈیو تلاوت کے ذریعے الہی آیات کا تجربہ کریں۔",
   "listenNow": "ابھی سنیں",
   "tutorCardTitle": "AI قرآن ٹیوٹر",
   "tutorCardDescription": "ہمارے علمی AI اسسٹنٹ سے قرآن کے بارے میں اپنے سوالات کے جوابات حاصل کریں۔",
@@ -77,5 +77,9 @@
   "livePageTitle": "مکہ اور مدینہ سے براہ راست",
   "livePageDescription": "مکہ اور مدینہ کی مقدس مساجد سے براہ راست نشریات دیکھیں۔",
   "liveFromMecca": "مکہ سے براہ راست",
-  "liveFromMedina": "مدینہ سے براہ راست"
+  "liveFromMedina": "مدینہ سے براہ راست",
+  "tuneIn": "سنیں",
+  "watchNow": "ابھی دیکھیں",
+  "surahOfTheDay": "آج کی سورت",
+  "readSurah": "سورت پڑھیں"
 }
