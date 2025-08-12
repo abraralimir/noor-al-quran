@@ -9,7 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Surah } from "@/types/quran";
-import { getSurahs } from "@/lib/quran-api";
+import { getSurahOfTheDay } from "@/actions/quran";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
@@ -20,11 +20,9 @@ export default function Home() {
   useEffect(() => {
     async function fetchSurah() {
       try {
-        const surahs = await getSurahs();
-        if (surahs.length > 0) {
-          const dayOfYear = Math.floor((new Date().getTime() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-          const surahIndex = dayOfYear % surahs.length;
-          setSurahOfTheDay(surahs[surahIndex]);
+        const surah = await getSurahOfTheDay();
+        if (surah) {
+          setSurahOfTheDay(surah);
         }
       } catch (error) {
         console.error("Failed to fetch Surah of the day:", error);

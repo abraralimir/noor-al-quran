@@ -6,6 +6,7 @@ import { quranTutor } from '@/ai/flows/quran-tutor';
 import { writingInstructor } from '@/ai/flows/writing-instructor';
 import { getSurahs, getSurah } from '@/lib/quran-api';
 import { selectTafseerAudio } from '@/ai/flows/tafseer-audio-selector';
+import type { Surah } from '@/types/quran';
 
 interface NavigationResult {
   path?: string;
@@ -144,6 +145,21 @@ export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): P
         } else {
             console.error(`An unknown error occurred while fetching tafseer for Surah ${surahNumber}:`, error);
         }
+        return null;
+    }
+}
+
+export async function getSurahOfTheDay(): Promise<Surah | null> {
+    try {
+        const surahs = await getSurahs();
+        if (surahs.length > 0) {
+            const dayOfYear = Math.floor((new Date().getTime() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+            const surahIndex = dayOfYear % surahs.length;
+            return surahs[surahIndex];
+        }
+        return null;
+    } catch (error) {
+        console.error("Failed to fetch Surah of the day:", error);
         return null;
     }
 }
