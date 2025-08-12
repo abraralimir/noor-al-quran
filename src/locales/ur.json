@@ -18,6 +18,8 @@
   "tutor": "ٹیوٹر",
   "kids": "بچے",
   "tafseer": "تفسیر",
+  "radio": "ریڈیو",
+  "live": "براہ راست",
   "listenToTheQuran": "قرآن سنیں",
   "listenToTheQuranDescription": "مشاری راشد العفاسی کی خوبصورت تلاوت سننے کے لیے ایک سورت منتخب کریں۔",
   "loadingAudioPlayer": "آڈیو پلیئر لوڈ ہو رہا ہے...",
@@ -69,5 +71,11 @@
   "exploreTafseer": "تفسیر دریافت کریں",
   "error": "خرابی",
   "ayah": "آیت",
-  "readTafseer": "تفسیر پڑھیں"
+  "readTafseer": "تفسیر پڑھیں",
+  "radioPageTitle": "قرآن ریڈیو",
+  "radioPageDescription": "دنیا بھر سے براہ راست قرآن ریڈیو سٹریمز سنیں۔",
+  "livePageTitle": "مکہ اور مدینہ سے براہ راست",
+  "livePageDescription": "مکہ اور مدینہ کی مقدس مساجد سے براہ راست نشریات دیکھیں۔",
+  "liveFromMecca": "مکہ سے براہ راست",
+  "liveFromMedina": "مدینہ سے براہ راست"
 }

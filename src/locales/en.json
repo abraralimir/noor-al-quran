@@ -18,6 +18,8 @@
   "tutor": "Tutor",
   "kids": "Kids",
   "tafseer": "Tafseer",
+  "radio": "Radio",
+  "live": "Live",
   "listenToTheQuran": "Listen to the Quran",
   "listenToTheQuranDescription": "Select a Surah to listen to the beautiful recitation by Mishary Rashid Alafasy.",
   "loadingAudioPlayer": "Loading audio player...",
@@ -69,5 +71,11 @@
   "exploreTafseer": "Explore Tafseer",
   "error": "Error",
   "ayah": "Ayah",
-  "readTafseer": "Read Tafseer"
+  "readTafseer": "Read Tafseer",
+  "radioPageTitle": "Quran Radio",
+  "radioPageDescription": "Listen to live Quran radio streams from around the world.",
+  "livePageTitle": "Live from Mecca & Medina",
+  "livePageDescription": "Watch the live broadcasts from the Holy Mosques in Mecca and Medina.",
+  "liveFromMecca": "Live from Mecca",
+  "liveFromMedina": "Live from Medina"
 }
