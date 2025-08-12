@@ -127,12 +127,17 @@ export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): P
         
         const data = await response.json();
 
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            console.error(`No Tafseer data returned for Surah ${surahNumber} from ${url}.`);
+            return null;
+        }
+
         // Get audio URL from our AI flow
         const audioResponse = await selectTafseerAudio({ surahNumber, language: lang });
         const audioUrl = audioResponse.audioUrl;
 
         const ayahs: TafseerAyah[] = data.map((ayah: any) => ({
-            ayah: parseInt(ayah.ayah, 10),
+            ayah: parseInt(ayah.ayah_number, 10),
             text: ayah.text,
         }));
         
