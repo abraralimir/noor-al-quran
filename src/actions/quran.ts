@@ -82,12 +82,12 @@ interface WritingInstructorResult {
     nextLetter?: string;
 }
 
-export async function handleWritingSubmission(imageDataUri: string, letter: string): Promise<WritingInstructorResult> {
+export async function handleWritingSubmission(imageDataUri: string, letter: string, language: 'en' | 'ur'): Promise<WritingInstructorResult> {
     try {
         if (!imageDataUri) {
             return { isCorrect: false, feedback: "Please draw the letter before submitting." };
         }
-        const { isCorrect, feedback, nextLetter } = await writingInstructor({ drawing: imageDataUri, letter });
+        const { isCorrect, feedback, nextLetter } = await writingInstructor({ drawing: imageDataUri, letter, language });
         return { isCorrect, feedback, nextLetter };
     } catch (error) {
         console.error('Error handling writing submission:', error);
@@ -118,10 +118,12 @@ export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): P
     
     try {
         const url = `${baseUrl}/tafseer/${tafseerEditionId}/${surahNumber}`;
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' }); // Disable caching
         
         if (!response.ok) {
-            console.error(`Failed to fetch Tafseer for Surah ${surahNumber} from ${url}. Status: ${response.status}`);
+            console.error(`Failed to fetch Tafseer for Surah ${surahNumber} from ${url}. Status: ${response.status} ${response.statusText}`);
+            const errorBody = await response.text();
+            console.error('Error Body:', errorBody);
             return null;
         }
         
@@ -138,7 +140,7 @@ export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): P
 
         const ayahs: TafseerAyah[] = data.map((ayah: any) => ({
             ayah: parseInt(ayah.ayah_number, 10),
-            text: ayah.text,
+            text: ayah.text || "...", // Handle empty text fields
         }));
         
         return {
@@ -150,7 +152,13 @@ export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): P
           audioUrl: audioUrl,
         };
     } catch (error) {
-        console.error('Error fetching or processing surah tafseer:', error);
+        if (error instanceof Error) {
+            console.error(`Error fetching or processing surah tafseer for Surah ${surahNumber}:`, error.message);
+            console.error(error.stack);
+        } else {
+            console.error(`An unknown error occurred while fetching tafseer for Surah ${surahNumber}:`, error);
+        }
         return null;
     }
 }
+
