@@ -8,8 +8,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LoaderCircle, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
+
 
 export function CalendarPageClient() {
     const { t, language } = useTranslation();
@@ -110,34 +120,55 @@ export function CalendarPageClient() {
                         {calendarData.map(day => {
                              const isToday = new Date(day.date.gregorian.date.split('-').reverse().join('-')).toLocaleDateString() === todayDateString;
                              const isCurrentMonth = parseInt(day.date.gregorian.month.number, 10) === (currentDate.getMonth() + 1);
-                             return (
+                             const hasHoliday = day.date.hijri.holidays.length > 0;
+                             
+                             const DayCell = (
                                 <div
                                     key={day.date.readable}
                                     className={cn(
-                                        "border rounded-lg p-2 h-24 md:h-32 flex flex-col justify-between",
+                                        "border rounded-lg p-2 h-24 md:h-32 flex flex-col justify-between relative",
                                         !isCurrentMonth && "bg-muted/50 text-muted-foreground",
-                                        isToday && "border-2 border-primary bg-primary/10"
+                                        isToday && "border-2 border-primary bg-primary/10",
+                                        hasHoliday && "cursor-pointer hover:bg-accent/50"
                                     )}
                                 >
                                    <div className="flex justify-between items-start">
                                       <p className="font-bold text-lg">{day.date.gregorian.day}</p>
-                                      <p className="font-arabic font-semibold">{day.date.hijri.day}</p>
+                                      <p className="font-arabic font-semibold text-sm text-muted-foreground">{day.date.hijri.day}</p>
                                    </div>
                                     <div className="text-right">
-                                        <p className="font-arabic text-xs">{day.date.hijri.month.ar}</p>
-                                         {day.date.hijri.holidays.length > 0 && (
-                                            <div className="flex flex-wrap gap-1 mt-1 justify-end">
-                                                {day.date.hijri.holidays.map(holiday => (
-                                                    <Badge key={holiday} variant="destructive" className="flex items-center gap-1 text-xs">
-                                                        <Star className="h-3 w-3" />
-                                                        <span>{holiday}</span>
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        )}
+                                        <p className="font-arabic text-xs text-muted-foreground">{day.date.hijri.month.ar}</p>
                                     </div>
+                                     {hasHoliday && (
+                                        <div className="absolute bottom-2 right-2">
+                                            <Star className="h-4 w-4 text-amber-500 fill-amber-400" />
+                                        </div>
+                                    )}
                                 </div>
                              )
+                             
+                             if (hasHoliday) {
+                                return (
+                                    <AlertDialog key={day.date.readable}>
+                                        <AlertDialogTrigger asChild>
+                                            {DayCell}
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                            <AlertDialogTitle>Islamic Event</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                {day.date.hijri.holidays.join(', ')}
+                                            </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                            <AlertDialogAction>Close</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                )
+                             }
+
+                             return DayCell;
                         })}
                     </div>
                 )}
