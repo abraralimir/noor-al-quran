@@ -31,25 +31,24 @@ type Message = {
 };
 
 function ChatAudioPlayer({ audioUrl, surahNumber, ayahNumber }: { audioUrl: string, surahNumber?: number, ayahNumber?: number }) {
-  const { togglePlayPause, isPlaying, isLoading, src } = useAudioPlayer();
-  const isThisAudioPlaying = isPlaying && src === audioUrl;
+  const { togglePlayPause, isPlaying, isLoading } = useAudioPlayer({
+    src: audioUrl,
+    mediaMetadata: {
+      title: surahNumber && ayahNumber ? `Surah ${surahNumber}, Ayah ${ayahNumber}` : 'Recitation',
+      artist: 'Noor Al Quran'
+    }
+  });
 
-  const title = surahNumber && ayahNumber ? `Surah ${surahNumber}, Ayah ${ayahNumber}` : 'Recitation';
-
-  const handlePlay = () => {
-    togglePlayPause(audioUrl, { title, artist: 'Noor Al Quran' });
-  };
-  
   return (
-    <Button variant="outline" size="sm" onClick={handlePlay} className="mt-2">
-      {isLoading && src === audioUrl ? (
+    <Button variant="outline" size="sm" onClick={togglePlayPause} className="mt-2">
+      {isLoading ? (
         <LoaderCircle className="h-4 w-4 animate-spin mr-2" />
-      ) : isThisAudioPlaying ? (
+      ) : isPlaying ? (
         <Pause className="h-4 w-4 mr-2" />
       ) : (
         <Play className="h-4 w-4 mr-2" />
       )}
-      {isThisAudioPlaying ? 'Pause' : 'Play Recitation'}
+      {isPlaying ? 'Pause' : 'Play Recitation'}
     </Button>
   )
 }

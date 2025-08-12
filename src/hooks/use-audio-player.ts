@@ -5,105 +5,23 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 interface UseAudioPlayerProps {
+  src?: string;
   onEnded?: () => void;
+  mediaMetadata?: MediaMetadataInit;
+  isLiveStream?: boolean;
 }
-
-// Global state for the single audio instance
-let audio: HTMLAudioElement | null = null;
-let currentSrc: string | null = null;
-const listeners = new Set<() => void>();
-
-const getAudioInstance = () => {
-  if (typeof window !== 'undefined' && !audio) {
-    audio = new Audio();
-  }
-  return audio;
-};
-
-const notifyListeners = () => {
-  listeners.forEach(listener => listener());
-};
 
 const artworkUrl = '/book-1920.jpg';
 
-// This is the new global state that will be shared across all components using the hook
-let globalState = {
-  src: '',
-  isPlaying: false,
-  isLoading: false,
-  duration: 0,
-  progress: 0,
-  isLive: false,
-};
-
-const setGlobalState = (newState: Partial<typeof globalState>) => {
-  globalState = { ...globalState, ...newState };
-  notifyListeners();
-};
-
-const useSharedAudioState = () => {
-  const [, forceUpdate] = useState({});
-
-  useEffect(() => {
-    const listener = () => forceUpdate({});
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
-    };
-  }, []);
-
-  return globalState;
-};
-
-// Centralized logic for media session
-const setupMediaSession = (audioEl: HTMLAudioElement) => {
-    if (!('mediaSession' in navigator)) return;
-
-    const play = () => audioEl.play().catch(e => console.error("Play error:", e));
-    const pause = () => audioEl.pause();
-    const seek = (details: MediaSessionActionDetails) => {
-      if (globalState.isLive) return;
-      const skipTime = details.seekOffset || (details.action === 'seekbackward' ? -10 : 10);
-      audioEl.currentTime = Math.max(0, Math.min(audioEl.duration, audioEl.currentTime + skipTime));
-    };
-
-    navigator.mediaSession.setActionHandler('play', play);
-    navigator.mediaSession.setActionHandler('pause', pause);
-    navigator.mediaSession.setActionHandler('seekbackward', seek);
-    navigator.mediaSession.setActionHandler('seekforward', seek);
-};
-
-// Run this once
-if (typeof window !== 'undefined') {
-  const audioEl = getAudioInstance();
-  if (audioEl) {
-    setupMediaSession(audioEl);
-    
-    audioEl.addEventListener('play', () => setGlobalState({ isPlaying: true, isLoading: false }));
-    audioEl.addEventListener('pause', () => setGlobalState({ isPlaying: false }));
-    audioEl.addEventListener('ended', () => setGlobalState({ isPlaying: false }));
-    audioEl.addEventListener('waiting', () => setGlobalState({ isLoading: true }));
-    audioEl.addEventListener('canplay', () => setGlobalState({ isLoading: false }));
-    audioEl.addEventListener('timeupdate', () => setGlobalState({ progress: audioEl.currentTime }));
-    audioEl.addEventListener('durationchange', () => {
-      const isLiveStream = !isFinite(audioEl.duration);
-      setGlobalState({ 
-        isLive: isLiveStream, 
-        duration: isLiveStream ? 0 : audioEl.duration 
-      });
-    });
-    audioEl.addEventListener('error', () => {
-      console.error("Audio element error");
-      setGlobalState({ isLoading: false, isPlaying: false });
-    });
-  }
-}
-
-
 export function useAudioPlayer(props: UseAudioPlayerProps = {}) {
-  const { onEnded } = props;
-  const audioInstance = getAudioInstance();
-  const state = useSharedAudioState();
+  const { src, onEnded, mediaMetadata, isLiveStream = false } = props;
+  
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [isLive, setIsLive] = useState(isLiveStream);
   const { toast } = useToast();
 
   const onEndedRef = useRef(onEnded);
@@ -112,84 +30,128 @@ export function useAudioPlayer(props: UseAudioPlayerProps = {}) {
   }, [onEnded]);
 
   useEffect(() => {
-    if (!audioInstance) return;
+    if (typeof window !== 'undefined') {
+      audioRef.current = new Audio();
+      const audio = audioRef.current;
+      
+      const handlePlay = () => { setIsPlaying(true); setIsLoading(false); };
+      const handlePause = () => setIsPlaying(false);
+      const handleEnded = () => {
+        setIsPlaying(false);
+        if (onEndedRef.current) onEndedRef.current();
+      };
+      const handleWaiting = () => setIsLoading(true);
+      const handleCanPlay = () => setIsLoading(false);
+      const handleTimeUpdate = () => setProgress(audio.currentTime);
+      const handleDurationChange = () => {
+        const isLive = !isFinite(audio.duration);
+        setIsLive(isLive);
+        setDuration(isLive ? 0 : audio.duration);
+      };
+      const handleError = (e: Event) => {
+        console.error("Audio element error", e);
+        setIsLoading(false);
+        setIsPlaying(false);
+        toast({
+          variant: 'destructive',
+          title: 'Audio Error',
+          description: 'Could not play audio. It might be a network issue or unsupported format.',
+        });
+      };
+      
+      audio.addEventListener('play', handlePlay);
+      audio.addEventListener('pause', handlePause);
+      audio.addEventListener('ended', handleEnded);
+      audio.addEventListener('waiting', handleWaiting);
+      audio.addEventListener('canplay', handleCanPlay);
+      audio.addEventListener('timeupdate', handleTimeUpdate);
+      audio.addEventListener('durationchange', handleDurationChange);
+      audio.addEventListener('error', handleError);
 
-    const handleEnded = () => {
-      if (state.src === currentSrc && onEndedRef.current) {
-        onEndedRef.current();
-      }
-    };
-    
-    audioInstance.addEventListener('ended', handleEnded);
-    return () => {
-      audioInstance.removeEventListener('ended', handleEnded);
-    };
-  }, [state.src, audioInstance]);
-
-  const playAudio = useCallback((src: string, mediaMetadata?: MediaMetadataInit) => {
-    if (!audioInstance) return;
-
-    setGlobalState({ isLoading: true, src });
-    currentSrc = src;
-
-    if (audioInstance.src !== src) {
-      audioInstance.src = src;
+      return () => {
+        audio.removeEventListener('play', handlePlay);
+        audio.removeEventListener('pause', handlePause);
+        audio.removeEventListener('ended', handleEnded);
+        audio.removeEventListener('waiting', handleWaiting);
+        audio.removeEventListener('canplay', handleCanPlay);
+        audio.removeEventListener('timeupdate', handleTimeUpdate);
+        audio.removeEventListener('durationchange', handleDurationChange);
+        audio.removeEventListener('error', handleError);
+        audio.pause();
+        audio.src = '';
+      };
     }
-    
+  }, [toast]);
+
+  useEffect(() => {
+    if (audioRef.current && src && audioRef.current.src !== src) {
+      audioRef.current.src = src;
+      setIsLoading(true);
+      setProgress(0);
+    }
+  }, [src]);
+
+  const play = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || !src) return;
+
     if (mediaMetadata && 'mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         ...mediaMetadata,
         artwork: [{ src: artworkUrl, sizes: '1920x1280', type: 'image/jpeg' }],
       });
+      navigator.mediaSession.setActionHandler('play', play);
+      navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+      navigator.mediaSession.setActionHandler('seekbackward', () => seek(-10));
+      navigator.mediaSession.setActionHandler('seekforward', () => seek(10));
     }
-
-    const playPromise = audioInstance.play();
-    if (playPromise) {
-        playPromise.catch(e => {
-            console.error("Play error:", e);
-            toast({
-              variant: 'destructive',
-              title: 'Audio Error',
-              description: 'Could not play audio. It might be a network issue or unsupported format.',
-            });
-            setGlobalState({ isLoading: false, isPlaying: false });
-        });
+    
+    setIsLoading(true);
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(e => {
+        console.error("Play promise error:", e);
+        setIsLoading(false);
+      });
     }
-  }, [audioInstance, toast]);
+  }, [src, mediaMetadata]);
 
-  const pauseAudio = useCallback(() => {
-    if (!audioInstance) return;
-    audioInstance.pause();
-  }, [audioInstance]);
+  const pause = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  }, []);
 
-  const togglePlayPause = useCallback((src: string, mediaMetadata?: MediaMetadataInit) => {
-    if (state.isPlaying && state.src === src) {
-      pauseAudio();
+  const togglePlayPause = useCallback(() => {
+    if (isPlaying) {
+      pause();
     } else {
-      playAudio(src, mediaMetadata);
+      play();
     }
-  }, [state.isPlaying, state.src, playAudio, pauseAudio]);
-
+  }, [isPlaying, play, pause]);
+  
   const seek = useCallback((seconds: number) => {
-    if (audioInstance && !state.isLive) {
-      audioInstance.currentTime = Math.max(0, Math.min(state.duration, audioInstance.currentTime + seconds));
+    const audio = audioRef.current;
+    if (audio && !isLive) {
+      audio.currentTime = Math.max(0, Math.min(duration, audio.currentTime + seconds));
     }
-  }, [audioInstance, state.isLive, state.duration]);
+  }, [isLive, duration]);
 
   const handleSliderChange = (value: number[]) => {
-    if (audioInstance && !state.isLive) {
-      audioInstance.currentTime = value[0];
-      setGlobalState({ progress: value[0] });
+    const audio = audioRef.current;
+    if (audio && !isLive) {
+      audio.currentTime = value[0];
+      setProgress(value[0]);
     }
   };
 
   const formatTime = (time: number) => {
-    if (state.isLive) return 'Live';
+    if (isLive) return 'Live';
     if (isNaN(time) || !isFinite(time) || time < 0) return '0:00';
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
-  return { ...state, togglePlayPause, seek, handleSliderChange, formatTime };
+  return { isPlaying, isLoading, progress, duration, isLive, togglePlayPause, seek, handleSliderChange, formatTime, play, pause };
 }

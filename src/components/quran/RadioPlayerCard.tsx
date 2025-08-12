@@ -14,18 +14,16 @@ interface RadioPlayerCardProps {
 
 export function RadioPlayerCard({ name, streamUrl }: RadioPlayerCardProps) {
   
-  const { isPlaying, isLoading, isLive, src, togglePlayPause } = useAudioPlayer();
-  
-  const currentlyPlayingThis = isPlaying && src === streamUrl;
-
-  const handleTogglePlay = () => {
-    togglePlayPause(streamUrl, {
+  const { isPlaying, isLoading, isLive, togglePlayPause } = useAudioPlayer({
+    src: streamUrl,
+    mediaMetadata: {
         title: name,
         artist: 'Live Radio',
         album: 'Noor Al Quran'
-    });
-  }
-
+    },
+    isLiveStream: true
+  });
+  
   return (
     <Card>
       <CardHeader>
@@ -36,7 +34,7 @@ export function RadioPlayerCard({ name, streamUrl }: RadioPlayerCardProps) {
       </CardHeader>
       <CardContent className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-            {isLive && currentlyPlayingThis && (
+            {isLive && isPlaying && (
                  <div className="flex items-center gap-2 text-red-500">
                     <span className="relative flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -50,13 +48,13 @@ export function RadioPlayerCard({ name, streamUrl }: RadioPlayerCardProps) {
           variant="default"
           size="icon"
           className="h-12 w-12 rounded-full"
-          onClick={handleTogglePlay}
-          aria-label={currentlyPlayingThis ? 'Pause' : 'Play'}
-          disabled={isLoading && src === streamUrl}
+          onClick={togglePlayPause}
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+          disabled={isLoading}
         >
-          {isLoading && src === streamUrl ? (
+          {isLoading ? (
             <LoaderCircle className="h-6 w-6 animate-spin" />
-          ) : currentlyPlayingThis ? (
+          ) : isPlaying ? (
             <Pause className="h-6 w-6" />
           ) : (
             <Play className="h-6 w-6" />

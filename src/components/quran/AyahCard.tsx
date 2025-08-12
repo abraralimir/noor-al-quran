@@ -19,26 +19,23 @@ export function AyahCard({ ayah, surahNumber }: AyahCardProps) {
   
   const audioSrc = `https://cdn.islamic.network/quran/audio/64/ar.abdurrahmaansudais/${ayah.number}.mp3`;
 
-  // This hook will now control a single, shared audio element.
-  const { togglePlayPause, isLoading, isPlaying, src } = useAudioPlayer();
-
-  const currentlyPlayingThisAyah = isPlaying && src === audioSrc;
-
-  const handlePlayClick = () => {
-    togglePlayPause(audioSrc, {
+  const { togglePlayPause, isLoading, isPlaying, play, pause } = useAudioPlayer({
+    src: audioSrc,
+    mediaMetadata: {
       title: `Surah ${surahNumber}, Ayah ${ayah.numberInSurah}`,
       artist: 'Abdur-Rahman as-Sudais'
-    });
-  }
+    }
+  });
+
 
   return (
     <div className="space-y-4 p-4 rounded-lg border bg-card">
       <div className="flex justify-between items-center">
-        <Button size="icon" variant="ghost" onClick={handlePlayClick} disabled={isLoading && src === audioSrc}>
-            {isLoading && src === audioSrc ? (
+        <Button size="icon" variant="ghost" onClick={togglePlayPause} disabled={isLoading}>
+            {isLoading ? (
                 <LoaderCircle className="h-5 w-5 animate-spin" />
             ) : (
-                currentlyPlayingThisAyah ? 
+                isPlaying ? 
                 <Pause className="h-5 w-5 text-primary fill-primary" /> :
                 <Play className="h-5 w-5" />
             )}

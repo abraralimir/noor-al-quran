@@ -22,12 +22,14 @@ interface SurahAudioPlayerProps {
 
 export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlayerProps) {
   const { t } = useTranslation();
-  const [selectedSurahNumber, setSelectedSurahNumber] = useState<string | undefined>(initialSurahNumber);
-  const [playlist, setPlaylist] = useState<Surah[]>([]);
-  const [currentPlaylistIndex, setCurrentPlaylistIndex] = useState<number>(-1);
+  const [selectedSurah, setSelectedSurah] = useState<Surah | undefined>(
+    initialSurahNumber ? surahs.find(s => s.number.toString() === initialSurahNumber) : undefined
+  );
+  const [playlist, setPlaylist] = useState<Surah[]>(initialSurahNumber ? [surahs.find(s => s.number.toString() === initialSurahNumber)!] : []);
+  const [currentPlaylistIndex, setCurrentPlaylistIndex] = useState<number>(initialSurahNumber ? 0 : -1);
   const { toast } = useToast();
 
-  const currentPlayingSurah = currentPlaylistIndex > -1 ? playlist[currentPlaylistIndex] : surahs.find(s => s.number.toString() === selectedSurahNumber);
+  const currentPlayingSurah = currentPlaylistIndex > -1 ? playlist[currentPlaylistIndex] : selectedSurah;
 
   const handleNext = useCallback(() => {
     if (playlist.length > 0) {
@@ -37,7 +39,7 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
       const currentIndex = surahs.findIndex(s => s.number === currentPlayingSurah.number);
       if (currentIndex !== -1) {
         const nextIndex = (currentIndex + 1) % surahs.length;
-        setSelectedSurahNumber(surahs[nextIndex].number.toString());
+        setSelectedSurah(surahs[nextIndex]);
       }
     }
   }, [playlist, currentPlaylistIndex, surahs, currentPlayingSurah]);
@@ -50,7 +52,7 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
       const currentIndex = surahs.findIndex(s => s.number === currentPlayingSurah.number);
       if (currentIndex !== -1) {
         const prevIndex = (currentIndex - 1 + surahs.length) % surahs.length;
-        setSelectedSurahNumber(surahs[prevIndex].number.toString());
+        setSelectedSurah(surahs[prevIndex]);
       }
     }
   };
@@ -65,66 +67,44 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     togglePlayPause, 
     seek, 
     handleSliderChange,
-    formatTime 
+    formatTime,
+    play,
   } = useAudioPlayer({ 
+    src: audioUrl,
     onEnded: handleNext,
+    mediaMetadata: currentPlayingSurah ? {
+      title: `Surah ${currentPlayingSurah.englishName}`,
+      artist: 'Mishary Rashid Alafasy',
+      album: 'Noor Al Quran',
+    } : undefined
   });
 
-  const handleTogglePlay = () => {
-    if(currentPlayingSurah) {
-        const audioUrl = getSurahAudioUrl(currentPlayingSurah.number);
-        togglePlayPause(audioUrl, {
-             title: `Surah ${currentPlayingSurah.englishName}`,
-             artist: 'Mishary Rashid Alafasy',
-             album: 'Noor Al Quran',
-        });
-    }
-  };
-
   useEffect(() => {
-    if (surahs.length > 0 && initialSurahNumber) {
-      const initialSurah = surahs.find(s => s.number.toString() === initialSurahNumber);
-      if (initialSurah) {
-        setPlaylist([initialSurah]);
-        setCurrentPlaylistIndex(0);
-        setSelectedSurahNumber(undefined); // Play from playlist
-      }
-    }
-  }, [surahs, initialSurahNumber]);
-
-  useEffect(() => {
-    const playCurrent = () => {
-        if(currentPlayingSurah) {
-            const audioUrl = getSurahAudioUrl(currentPlayingSurah.number);
-            togglePlayPause(audioUrl, {
-                title: `Surah ${currentPlayingSurah.englishName}`,
-                artist: 'Mishary Rashid Alafasy',
-                album: 'Noor Al Quran',
-            });
-        }
-    };
-    
-    // Autoplay when the current playing Surah changes (from next/prev)
-    if (currentPlayingSurah) {
-        playCurrent();
+    if(currentPlayingSurah && isPlaying) {
+        play();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPlayingSurah?.number]); // Rerun only when surah number changes
+  }, [currentPlayingSurah?.number]);
 
 
   const handleSelectSurah = (surahNumber: string) => {
-    setPlaylist([]);
-    setCurrentPlaylistIndex(-1);
-    setSelectedSurahNumber(surahNumber);
+    const surah = surahs.find(s => s.number.toString() === surahNumber);
+    if(surah) {
+        setPlaylist([]);
+        setCurrentPlaylistIndex(-1);
+        setSelectedSurah(surah);
+    }
   };
   
   const addToPlaylist = (surah: Surah) => {
     if (!playlist.find(s => s.number === surah.number)) {
-      setPlaylist([...playlist, surah]);
+      const newPlaylist = [...playlist, surah];
+      setPlaylist(newPlaylist);
       toast({ title: t('addedToQueue'), description: `${t('surah')} ${surah.englishName} ${t('hasBeenAdded')}.`});
       // If nothing is playing, start playing the new song
-      if (!currentPlayingSurah) {
-        setCurrentPlaylistIndex(playlist.length);
+      if (currentPlaylistIndex === -1) {
+        setCurrentPlaylistIndex(newPlaylist.length - 1);
+        setSelectedSurah(undefined);
       }
     } else {
       toast({ variant: "destructive", title: t('alreadyInQueue'), description: `${t('surah')} ${surah.englishName} ${t('isAlreadyInQueue')}.`});
@@ -132,24 +112,26 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
   };
 
   const removeFromPlaylist = (surahNumber: number) => {
-    const surahToRemove = playlist.find(s => s.number === surahNumber);
-    if (!surahToRemove) return;
+    const surahToRemoveIndex = playlist.findIndex(s => s.number === surahNumber);
+    if (surahToRemoveIndex === -1) return;
 
+    const surahToRemove = playlist[surahToRemoveIndex];
     let newPlaylist = playlist.filter(s => s.number !== surahNumber);
     
-    if (surahToRemove.number === currentPlayingSurah?.number) {
-        if (newPlaylist.length > 0) {
-            const nextIndex = (currentPlaylistIndex) % newPlaylist.length;
-            setCurrentPlaylistIndex(nextIndex);
-        } else {
-            setCurrentPlaylistIndex(-1);
-            setSelectedSurahNumber(undefined);
-        }
-    } else {
-        const removedIndex = playlist.findIndex(s => s.number === surahNumber);
-        if (removedIndex < currentPlaylistIndex) {
-            setCurrentPlaylistIndex(currentPlaylistIndex - 1);
-        }
+    // If the removed track was the one playing
+    if (surahToRemoveIndex === currentPlaylistIndex) {
+      if (newPlaylist.length > 0) {
+        // If it was the last item, loop to the beginning
+        const nextIndex = surahToRemoveIndex % newPlaylist.length;
+        setCurrentPlaylistIndex(nextIndex);
+      } else {
+        // Playlist is now empty
+        setCurrentPlaylistIndex(-1);
+        setSelectedSurah(undefined);
+      }
+    } else if (surahToRemoveIndex < currentPlaylistIndex) {
+        // Adjust index if an earlier track was removed
+        setCurrentPlaylistIndex(currentPlaylistIndex - 1);
     }
     
     setPlaylist(newPlaylist);
@@ -161,6 +143,12 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     setCurrentPlaylistIndex(-1);
     toast({ title: t('queueCleared') });
   }
+
+  const playFromPlaylist = (index: number) => {
+    setCurrentPlaylistIndex(index);
+    setSelectedSurah(undefined); // Ensure we're in playlist mode
+  }
+
 
   return (
     <div className="space-y-6">
@@ -199,7 +187,7 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
                     <div className="space-y-1">
                         {playlist.map((surah, index) => (
                             <div key={surah.number} className={cn("flex items-center justify-between p-2 rounded-md", currentPlaylistIndex === index ? "bg-primary/10" : "hover:bg-muted")}>
-                                <button className="text-left flex-grow" onClick={() => setCurrentPlaylistIndex(index)}>
+                                <button className="text-left flex-grow" onClick={() => playFromPlaylist(index)}>
                                     <p className={cn(currentPlaylistIndex === index && "font-bold text-primary")}>
                                       {index + 1}. {surah.englishName}
                                     </p>
@@ -254,7 +242,7 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
           <Button variant="ghost" size="icon" onClick={() => seek(-10)} aria-label={t('rewind10Seconds')} disabled={!currentPlayingSurah || isLoading}>
             <Rewind className="h-6 w-6" />
           </Button>
-          <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={handleTogglePlay} aria-label={isPlaying ? t('pause') : t('play')} disabled={!currentPlayingSurah || isLoading}>
+          <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={togglePlayPause} aria-label={isPlaying ? t('pause') : t('play')} disabled={!currentPlayingSurah || isLoading}>
             {isLoading ? <LoaderCircle className="h-8 w-8 animate-spin" /> : (isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />)}
           </Button>
           <Button variant="ghost" size="icon" onClick={() => seek(10)} aria-label={t('fastForward10Seconds')} disabled={!currentPlayingSurah || isLoading}>

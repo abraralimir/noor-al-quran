@@ -31,24 +31,14 @@ export function TafseerPlayer({ surahName, tafseerName, audioUrl, initialLanguag
     seek, 
     handleSliderChange,
     formatTime,
-    src
-  } = useAudioPlayer();
-
-  const handleTogglePlay = () => {
-    if (audioUrl) {
-      togglePlayPause(audioUrl, {
-        title: `Tafseer of ${surahName}`,
-        artist: currentLanguage === 'ur' ? 'Dr. Israr Ahmed' : 'Mufti Abu Layth',
-        album: 'Noor Al Quran'
-      });
+  } = useAudioPlayer({
+    src: audioUrl,
+    mediaMetadata: {
+      title: `Tafseer of ${surahName}`,
+      artist: currentLanguage === 'ur' ? 'Dr. Israr Ahmed' : 'Mufti Abu Layth',
+      album: 'Noor Al Quran'
     }
-  };
-
-  useEffect(() => {
-    if(audioUrl && src !== audioUrl) {
-        // If a different audio is playing, just update the src, but don't autoplay
-    }
-  }, [audioUrl, src])
+  });
 
   const handleLangChange = (lang: 'en' | 'ur') => {
     if (lang !== currentLanguage) {
@@ -96,8 +86,8 @@ export function TafseerPlayer({ surahName, tafseerName, audioUrl, initialLanguag
         <Button variant="ghost" size="icon" onClick={() => seek(-10)} aria-label={t('rewind10Seconds')} disabled={!audioUrl || isLoading}>
           <Rewind className="h-6 w-6" />
         </Button>
-        <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={handleTogglePlay} aria-label={isPlaying ? t('pause') : t('play')} disabled={!audioUrl || isLoading}>
-          {isLoading && src === audioUrl ? <LoaderCircle className="h-8 w-8 animate-spin" /> : (isPlaying && src === audioUrl ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />)}
+        <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={togglePlayPause} aria-label={isPlaying ? t('pause') : t('play')} disabled={!audioUrl || isLoading}>
+          {isLoading ? <LoaderCircle className="h-8 w-8 animate-spin" /> : (isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />)}
         </Button>
         <Button variant="ghost" size="icon" onClick={() => seek(10)} aria-label={t('fastForward10Seconds')} disabled={!audioUrl || isLoading}>
           <FastForward className="h-6 w-6" />
