@@ -9,13 +9,14 @@ import type { Surah } from '@/types/quran';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useTranslation } from '@/hooks/use-translation';
-import { handleTafseerQuery, getAyahText } from '@/actions/quran';
+import { getSurahTafseer, Tafseer, TafseerAyah } from '@/actions/quran';
 import { LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSearchParams } from 'next/navigation';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { cn } from '@/lib/utils';
 
 interface TafseerPageClientProps {
   surahs: Surah[];
@@ -23,88 +24,52 @@ interface TafseerPageClientProps {
 
 const formSchema = z.object({
   surah: z.string().min(1, 'Please select a Surah.'),
-  ayah: z.coerce.number().int().min(1, 'Ayah number must be at least 1.'),
 });
-
-interface TafseerResult {
-  introduction: string;
-  theme: string;
-  analysis: string;
-}
 
 export function TafseerPageClient({ surahs }: TafseerPageClientProps) {
   const { t, language } = useTranslation();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<TafseerResult | null>(null);
+  const [result, setResult] = useState<Tafseer | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       surah: searchParams.get('surah') || '',
-      ayah: Number(searchParams.get('ayah')) || undefined,
     },
   });
 
   const selectedSurahNumber = form.watch('surah');
   const selectedSurah = surahs.find(s => s.number.toString() === selectedSurahNumber);
-
-  useEffect(() => {
-    form.register('ayah', {
-        validate: value => {
-            if (!selectedSurah) return true;
-            if (value > selectedSurah.numberOfAyahs) {
-                return `Ayah number cannot exceed ${selectedSurah.numberOfAyahs} for this Surah.`;
-            }
-            return true;
-        }
-    });
-  }, [form, selectedSurah]);
   
   useEffect(() => {
     const surahParam = searchParams.get('surah');
-    const ayahParam = searchParams.get('ayah');
-    if (surahParam && ayahParam) {
+    if (surahParam) {
       form.setValue('surah', surahParam);
-      form.setValue('ayah', Number(ayahParam));
-      // Automatically submit form if params are present
       form.handleSubmit(onSubmit)();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, form.setValue]);
+  
+  useEffect(() => {
+    if (selectedSurahNumber) {
+        form.handleSubmit(onSubmit)();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSurahNumber]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     setError(null);
     setResult(null);
 
-    const surah = surahs.find(s => s.number.toString() === values.surah);
-    if (!surah) {
-        setError("Selected Surah not found.");
-        setIsLoading(false);
-        return;
-    }
-    
-    if (values.ayah > surah.numberOfAyahs) {
-        form.setError("ayah", { type: "manual", message: `This Surah only has ${surah.numberOfAyahs} ayahs.`});
-        setIsLoading(false);
-        return;
-    }
-    
     try {
-        const ayahText = await getAyahText(surah.number, values.ayah);
-        if (!ayahText) {
-             setError("Could not retrieve the text for the selected Ayah. Please try again.");
-             setIsLoading(false);
-             return;
-        }
-
-        const response = await handleTafseerQuery(surah.number, values.ayah, surah.englishName, ayahText, language);
-        if (response.error) {
-            setError(response.error);
-        } else if (response.tafseer) {
-            setResult(response.tafseer);
+        const response = await getSurahTafseer(parseInt(values.surah, 10), language);
+        if (response) {
+            setResult(response);
+        } else {
+            setError("Could not retrieve the Tafseer for the selected Surah. Please try again.");
         }
     } catch (e) {
         setError("An unexpected error occurred.");
@@ -117,7 +82,7 @@ export function TafseerPageClient({ surahs }: TafseerPageClientProps) {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>{t('selectVerseForTafseer')}</CardTitle>
+          <CardTitle>{t('selectSurahForTafseer')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -147,25 +112,7 @@ export function TafseerPageClient({ surahs }: TafseerPageClientProps) {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="ayah"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('ayahNumber')}</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder={t('ayahNumberPlaceholder')} {...field} disabled={!selectedSurahNumber} />
-                      </FormControl>
-                      {selectedSurah && <p className="text-sm text-muted-foreground">{t('totalAyahs')}: {selectedSurah.numberOfAyahs}</p>}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-                {t('getTafseer')}
-              </Button>
             </form>
           </Form>
         </CardContent>
@@ -187,21 +134,27 @@ export function TafseerPageClient({ surahs }: TafseerPageClientProps) {
       {result && (
         <Card className="shadow-lg">
             <CardHeader>
-                <CardTitle className="font-headline text-3xl">{t('tafseerResultTitle')} - {selectedSurah?.englishName} {form.getValues('ayah')}</CardTitle>
+                <CardTitle className="font-headline text-3xl">{result.surah_name}</CardTitle>
+                <CardDescription>{t('tafseerBy')} {result.tafseer_name}</CardDescription>
             </CardHeader>
-            <CardContent className={cn("space-y-6", language === 'ur' ? 'text-right font-urdu' : '')} dir={language === 'ur' ? 'rtl' : 'ltr'}>
-                <div>
-                    <h3 className="text-xl font-bold text-primary mb-2">{t('tafseerIntroduction')}</h3>
-                    <p className="text-muted-foreground whitespace-pre-wrap">{result.introduction}</p>
-                </div>
-                 <div>
-                    <h3 className="text-xl font-bold text-primary mb-2">{t('tafseerTheme')}</h3>
-                    <p className="text-muted-foreground whitespace-pre-wrap">{result.theme}</p>
-                </div>
-                 <div>
-                    <h3 className="text-xl font-bold text-primary mb-2">{t('tafseerAnalysis')}</h3>
-                    <p className="text-muted-foreground whitespace-pre-wrap">{result.analysis}</p>
-                </div>
+            <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                    {result.ayahs.map(ayah => (
+                       <AccordionItem key={ayah.ayah_number} value={`item-${ayah.ayah_number}`}>
+                            <AccordionTrigger>
+                                <span className="flex items-center gap-4">
+                                   <span className="text-sm font-mono text-accent bg-accent/10 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
+                                        {ayah.ayah_number}
+                                    </span>
+                                    <span className="font-arabic text-xl text-right flex-grow" dir="rtl">{ayah.ayah_text}</span>
+                                </span>
+                            </AccordionTrigger>
+                            <AccordionContent className={cn("px-4 text-base", language === 'ur' ? 'text-right font-urdu' : '')} dir={language === 'ur' ? 'rtl' : 'ltr'}>
+                                {ayah.tafseer_text}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
             </CardContent>
         </Card>
       )}

@@ -2,11 +2,10 @@
 'use server';
 
 import { quranNavigator } from '@/ai/flows/quran-navigator';
-import { quranTafseer } from '@/ai/flows/quran-tafseer';
 import { quranTutor } from '@/ai/flows/quran-tutor';
 import { writingInstructor } from '@/ai/flows/writing-instructor';
 import { getSurahs, getSurah } from '@/lib/quran-api';
-import type { Surah } from '@/types/quran';
+import type { Surah, Ayah } from '@/types/quran';
 
 interface NavigationResult {
   path?: string;
@@ -78,17 +77,17 @@ export async function handleTutorQuery(question: string, language: 'en' | 'ur' =
 }
 
 interface WritingInstructorResult {
-  isCorrect: boolean;
-  feedback: string;
-  nextLetter?: string;
+    isCorrect: boolean;
+    feedback: string;
+    nextLetter?: string;
 }
 
-export async function handleWritingSubmission(imageDataUri: string, letter: string, lang: 'en' | 'ur'): Promise<WritingInstructorResult> {
+export async function handleWritingSubmission(imageDataUri: string, letter: string): Promise<WritingInstructorResult> {
     try {
         if (!imageDataUri) {
             return { isCorrect: false, feedback: "Please draw the letter before submitting." };
         }
-        const { isCorrect, feedback, nextLetter } = await writingInstructor({ drawing: imageDataUri, letter, language: lang });
+        const { isCorrect, feedback, nextLetter } = await writingInstructor({ drawing: imageDataUri, letter });
         return { isCorrect, feedback, nextLetter };
     } catch (error) {
         console.error('Error handling writing submission:', error);
@@ -97,32 +96,45 @@ export async function handleWritingSubmission(imageDataUri: string, letter: stri
     }
 }
 
-interface TafseerResult {
-  tafseer?: {
-    introduction: string;
-    theme: string;
-    analysis: string;
-  };
-  error?: string;
+
+export interface TafseerAyah {
+  ayah_number: number;
+  ayah_text: string;
+  tafseer_text: string;
 }
 
-export async function handleTafseerQuery(surahNumber: number, ayahNumber: number, surahName: string, ayahText: string, lang: 'en' | 'ur'): Promise<TafseerResult> {
-  try {
-    const tafseerOutput = await quranTafseer({ surahName, ayahNumber, ayahText, language: lang });
-    return { tafseer: tafseerOutput };
-  } catch (error) {
-    console.error(`Error fetching tafseer for Surah ${surahNumber}:${ayahNumber}`, error);
-    return { error: "An error occurred while fetching the Tafseer. Please try again." };
-  }
+export interface Tafseer {
+  tafseer_id: number;
+  tafseer_name: string;
+  surah_name: string;
+  ayahs: TafseerAyah[];
 }
 
-export async function getAyahText(surahNumber: number, ayahNumberInSurah: number): Promise<string | null> {
+export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): Promise<Tafseer | null> {
+    // Tafseer IDs: 1 for English (Saheeh International), 4 for Urdu (Tafheem-ul-Quran)
+    const tafseerId = lang === 'en' ? 1 : 4; 
     try {
-        const surah = await getSurah(surahNumber, 'en'); // get english for context
-        const ayah = surah?.ayahs.find(a => a.numberInSurah === ayahNumberInSurah);
-        return ayah ? ayah.text : null;
+        const url = `http://api.quran-tafseer.com/tafseer/${tafseerId}/${surahNumber}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch Tafseer for Surah ${surahNumber}`);
+        }
+        const data = await response.json();
+
+        const ayahs: TafseerAyah[] = data.ayahs.map((ayah: any) => ({
+            ayah_number: ayah.ayah_number,
+            ayah_text: ayah.ayah_text,
+            tafseer_text: ayah.tafseer_text,
+        }));
+        
+        return {
+          tafseer_id: data.tafseer_id,
+          tafseer_name: data.tafseer_name,
+          surah_name: data.surah_name,
+          ayahs: ayahs,
+        };
     } catch (error) {
-        console.error("Error fetching ayah text:", error);
+        console.error('Error fetching surah tafseer:', error);
         return null;
     }
 }
