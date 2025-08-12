@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Headphones, MessageCircle, ToyBrick, BookMarked, Radio, Tv, Sun } from 'lucide-react';
+import { BookOpen, Headphones, MessageCircle, ToyBrick, BookMarked, Radio, Tv, Sun, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AiSearch } from './AiSearch';
 import { useState, useEffect } from 'react';
@@ -19,6 +19,7 @@ export function Header() {
     { href: `/${language}/listen`, label: t('listen'), icon: Headphones },
     { href: `/${language}/tafseer`, label: t('tafseer'), icon: BookMarked },
     { href: `/${language}/prayer-times`, label: t('prayerTimes'), icon: Sun },
+    { href: `/${language}/calendar`, label: t('calendar'), icon: CalendarDays },
     { href: `/${language}/radio`, label: t('radio'), icon: Radio },
     { href: `/${language}/live`, label: t('live'), icon: Tv },
     { href: `/${language}/tutor`, label: t('tutor'), icon: MessageCircle },

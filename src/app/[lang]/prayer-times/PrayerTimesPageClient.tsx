@@ -26,18 +26,40 @@ export function PrayerTimesPageClient() {
     const [locationInfo, setLocationInfo] = useState<{ city: string; country: string } | null>(null);
 
     useEffect(() => {
+        const getCityName = async (latitude: number, longitude: number) => {
+            try {
+                // Using a free, no-key-required reverse geocoding API
+                const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+                if (!response.ok) return null;
+                const data = await response.json();
+                return { city: data.city || 'Unknown City', country: data.countryName || 'Unknown Country' };
+            } catch (error) {
+                console.error("Could not fetch city name:", error);
+                return null;
+            }
+        };
+
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     const { latitude, longitude } = position.coords;
                     try {
-                        const times = await fetchPrayerTimes(latitude, longitude);
+                        const [times, location] = await Promise.all([
+                            fetchPrayerTimes(latitude, longitude),
+                            getCityName(latitude, longitude)
+                        ]);
+
                         if (times) {
                             setPrayerTimes(times);
-                            setLocationInfo({
-                                city: times.meta.timezone.split('/')[1]?.replace('_', ' ') || 'Unknown City',
-                                country: times.meta.timezone.split('/')[0] || 'Unknown Country'
-                            });
+                            if (location) {
+                                setLocationInfo(location);
+                            } else {
+                                // Fallback to timezone if reverse geocoding fails
+                                setLocationInfo({
+                                    city: times.meta.timezone.split('/')[1]?.replace('_', ' ') || 'Unknown City',
+                                    country: times.meta.timezone.split('/')[0] || 'Unknown Country'
+                                });
+                            }
                         } else {
                             setError(t('prayerTimesError'));
                         }

@@ -84,10 +84,10 @@
   "surahOfTheDay": "Surah of the Day",
   "readSurah": "Read Surah",
   "hadithOfTheDay": "Hadith of the Day",
-  "sahihAlBukhari": "From Sahih al-Bukhari",
+  "sahihAlBukhari": "From Authentic Collections",
   "chapter": "Chapter",
   "hadithNotAvailable": "Hadith could not be loaded at this time.",
-  "hadithNumber": "Hadith No",
+  "hadithNumber": "Reference No",
   "duaOfTheDay": "Dua of the Day",
   "duaNotAvailable": "Dua could not be loaded at this time.",
   "prayerTimesTitle": "Prayer Times",
@@ -104,5 +104,14 @@
   "Asr": "Asr",
   "Maghrib": "Maghrib",
   "Isha": "Isha",
-  "Sunset": "Sunset"
+  "Sunset": "Sunset",
+  "calendar": "Calendar",
+  "islamicCalendar": "Islamic Calendar",
+  "islamicCalendarDescription": "View the Hijri calendar with important Islamic dates and events.",
+  "calendarCardDescription": "View the Hijri calendar with important dates and events for your location.",
+  "viewCalendar": "View Calendar",
+  "calendarError": "Could not fetch calendar data. Please try again later.",
+  "islamicDate": "Islamic Date",
+  "hijriCalendar": "Hijri Calendar",
+  "dateNotAvailable": "Date could not be loaded."
 }

@@ -1,39 +1,65 @@
 
 import type { Hadith } from '@/types/hadith';
 
-const HADITH_API_BASE_URL = 'https://random-hadith-generator.vercel.app/bukhari/';
+// Using a more reliable Hadith API
+const HADITH_API_BASE_URL = 'https://hadith.gq/api/v1/hadiths/random';
 
-interface ApiHadith {
-  Hadith_No: string;
-  En_Text: string;
-  Ur_Text: string;
-  En_Chapter_Name: string;
-  Ur_Chapter_Name: string;
+interface ApiHadithData {
+  id: number;
+  hadith_narrated: string;
+  hadith_english: string;
+  hadith_urdu: string;
+  hadith_arabic: string;
+  chapter_id: number;
+  book_id: number;
+  volume: number;
+  chapter: {
+    chapter_english: string;
+    chapter_urdu: string;
+  };
+  book: {
+    book_name_english: string;
+    book_name_urdu: string;
+  };
 }
 
-// The API response is sometimes nested under a "data" key, and sometimes it's the root object.
-// This type handles both possibilities.
-type ApiResponse = { data: ApiHadith } | ApiHadith;
-
+interface ApiResponse {
+  hadith: ApiHadithData;
+}
 
 export async function getHadith(): Promise<Hadith | null> {
   try {
-    const response = await fetch(HADITH_API_BASE_URL, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch hadith from the API. Status: ${response.status}`);
+    const apiKey = process.env.HADITH_API_KEY;
+    if (!apiKey) {
+      throw new Error("Hadith API key is not configured in .env file.");
     }
-    const rawData: ApiResponse = await response.json();
     
-    // Check if the data is nested under a 'data' property
-    const apiHadith: ApiHadith = 'data' in rawData ? rawData.data : rawData;
+    // This API provides random hadith from various books. We can filter for Bukhari if needed,
+    // but for "Hadith of the Day", a random one from any authentic book is also good.
+    // For now, we will fetch a completely random one.
+    const response = await fetch(HADITH_API_BASE_URL, {
+      headers: {
+        'API-KEY': apiKey,
+        'Accept': 'application/json'
+      },
+      cache: 'no-store' 
+    });
 
-    // Map the response to our internal Hadith type
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error("Hadith API Error Response:", errorBody);
+      throw new Error(`Failed to fetch hadith. Status: ${response.status}`);
+    }
+
+    const data: ApiResponse = await response.json();
+    const apiHadith = data.hadith;
+
     return {
-      hadithNumber: apiHadith.Hadith_No,
-      english: apiHadith.En_Text,
-      urdu: apiHadith.Ur_Text,
-      englishChapterName: apiHadith.En_Chapter_Name,
-      urduChapterName: apiHadith.Ur_Chapter_Name,
+      hadithNumber: apiHadith.id.toString(),
+      english: apiHadith.hadith_english,
+      urdu: apiHadith.hadith_urdu,
+      englishChapterName: apiHadith.chapter.chapter_english,
+      urduChapterName: apiHadith.chapter.chapter_urdu,
     };
   } catch (error) {
     console.error("Error fetching hadith:", error);

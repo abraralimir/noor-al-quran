@@ -84,10 +84,10 @@
   "surahOfTheDay": "آج کی سورت",
   "readSurah": "سورت پڑھیں",
   "hadithOfTheDay": "آج کی حدیث",
-  "sahihAlBukhari": "صحیح البخاری سے",
+  "sahihAlBukhari": "مستند مجموعوں سے",
   "chapter": "باب",
   "hadithNotAvailable": "اس وقت حدیث لوڈ نہیں کی جا سکی۔",
-  "hadithNumber": "حدیث نمبر",
+  "hadithNumber": "حوالہ نمبر",
   "duaOfTheDay": "آج کی دعا",
   "duaNotAvailable": "اس وقت دعا لوڈ نہیں کی جا سکی۔",
   "prayerTimesTitle": "نماز کے اوقات",
@@ -104,5 +104,14 @@
   "Asr": "عصر",
   "Maghrib": "مغرب",
   "Isha": "عشاء",
-  "Sunset": "غروب آفتاب"
+  "Sunset": "غروب آفتاب",
+  "calendar": "کیلنڈر",
+  "islamicCalendar": "اسلامی کیلنڈر",
+  "islamicCalendarDescription": "اہم اسلامی تاریخوں اور واقعات کے ساتھ ہجری کیلنڈر دیکھیں۔",
+  "calendarCardDescription": "اپنے مقام کے لیے اہم تاریخوں اور واقعات کے ساتھ ہجری کیلنڈر دیکھیں۔",
+  "viewCalendar": "کیلنڈر دیکھیں",
+  "calendarError": "کیلنڈر ڈیٹا حاصل نہیں کیا جا سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "islamicDate": "اسلامی تاریخ",
+  "hijriCalendar": "هجري كليندر",
+  "dateNotAvailable": "تاریخ لوڈ نہیں کی جا سکی۔"
 }

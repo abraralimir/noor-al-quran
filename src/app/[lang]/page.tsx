@@ -4,18 +4,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "@/hooks/use-translation";
-import { BookOpen, Headphones, MessageCircleQuestion, ToyBrick, BookMarked, Tv, Radio, Sun, BookHeart } from "lucide-react";
+import { BookOpen, Headphones, MessageCircleQuestion, ToyBrick, BookMarked, Tv, Radio, Sun, BookHeart, CalendarDays, ScrollText } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Surah } from "@/types/quran";
 import type { Hadith } from "@/types/hadith";
 import type { Dua } from "@/types/dua";
+import type { CalendarDay } from "@/types/calendar";
 import { getSurahOfTheDay } from "@/actions/quran";
 import { getHadithOfTheDay } from "@/actions/hadith";
 import { fetchDuaOfTheDay } from "@/actions/dua";
+import { fetchTodaysHijriDate } from "@/actions/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -23,19 +24,24 @@ export default function Home() {
   const [surahOfTheDay, setSurahOfTheDay] = useState<Surah | null>(null);
   const [hadithOfTheDay, setHadithOfTheDay] = useState<Hadith | null>(null);
   const [duaOfTheDay, setDuaOfTheDay] = useState<Dua | null>(null);
+  const [islamicDate, setIslamicDate] = useState<CalendarDay | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [surah, hadith, dua] = await Promise.all([
+        // For the islamic date, we can use a placeholder location.
+        // It doesn't significantly change for most regions.
+        const [surah, hadith, dua, date] = await Promise.all([
           getSurahOfTheDay(),
           getHadithOfTheDay(),
-          fetchDuaOfTheDay()
+          fetchDuaOfTheDay(),
+          fetchTodaysHijriDate(30, 31) // Lat/long for Mecca as a default
         ]);
         if (surah) setSurahOfTheDay(surah);
         if (hadith) setHadithOfTheDay(hadith);
         if (dua) setDuaOfTheDay(dua);
+        if (date) setIslamicDate(date);
 
       } catch (error) {
         console.error("Failed to fetch daily data:", error);
@@ -74,6 +80,13 @@ export default function Home() {
         href: `/${language}/prayer-times`,
         buttonText: t('viewPrayerTimes'),
         icon: Sun
+    },
+    {
+        title: t('calendar'),
+        description: t('calendarCardDescription'),
+        href: `/${language}/calendar`,
+        buttonText: t('viewCalendar'),
+        icon: CalendarDays
     },
     {
       title: t('radio'),
@@ -116,71 +129,122 @@ export default function Home() {
         </p>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-        <div className="relative w-full min-h-[24rem] rounded-2xl overflow-hidden shadow-2xl group">
-          <Image
-            src="/book-1920.jpg"
-            alt={t('quranImageAlt')}
-            fill
-            priority
-            style={{ objectFit: 'cover' }}
-            className="transition-transform duration-500 group-hover:scale-105"
-            data-ai-hint="holy quran"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
-          <div className="absolute inset-0 flex items-end p-8">
-              {loading ? (
-                <div className="w-full md:w-3/4 space-y-3">
-                    <Skeleton className="h-4 w-1/3" />
+      {/* Daily Content Section */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Surah of the Day */}
+        <Card className="flex flex-col justify-between bg-gradient-to-br from-primary/20 to-background shadow-xl">
+          <CardHeader>
+            <div className="flex items-center gap-4 text-primary">
+                <BookOpen className="w-8 h-8" />
+                <CardTitle className="font-headline text-2xl">{t('surahOfTheDay')}</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow">
+            {loading ? (
+                <div className="space-y-3">
                     <Skeleton className="h-8 w-1/2" />
                     <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-10 w-32 mt-2" />
                 </div>
-              ) : surahOfTheDay && (
-              <div className="bg-black/30 backdrop-blur-sm p-6 rounded-xl text-white max-w-lg">
-                  <h2 className="text-sm font-bold uppercase tracking-widest">{t('surahOfTheDay')}</h2>
-                  <h3 className="text-3xl font-headline font-bold mt-2">{surahOfTheDay.englishName} ({surahOfTheDay.name})</h3>
-                  <p className="mt-2 text-white/90">{surahOfTheDay.englishNameTranslation}</p>
-                  <Button asChild variant="default" className="mt-4 bg-white text-black hover:bg-white/90">
-                    <Link href={`/${language}/read?surah=${surahOfTheDay.number}`}>{t('readSurah')}</Link>
-                  </Button>
+            ) : surahOfTheDay && (
+              <div className="space-y-2">
+                <h3 className="text-2xl font-headline font-bold">{surahOfTheDay.englishName} ({surahOfTheDay.name})</h3>
+                <p className="text-muted-foreground">{surahOfTheDay.englishNameTranslation}</p>
               </div>
-               )}
-          </div>
-        </div>
-        
-        <div className="flex flex-col gap-8">
-            <Card className="flex flex-col justify-between bg-gradient-to-br from-accent/30 to-background shadow-xl flex-grow">
-               <CardHeader>
-                 <div className="flex items-center gap-4 text-primary">
-                   <ScrollText className="w-8 h-8" />
-                   <CardTitle className="font-headline text-3xl">{t('hadithOfTheDay')}</CardTitle>
-                 </div>
-                 <CardDescription>{t('sahihAlBukhari')}</CardDescription>
-               </CardHeader>
-               <CardContent className="flex-grow">
-                {loading ? (
-                    <div className="space-y-4">
-                      <Skeleton className="h-16 w-full" />
-                      <Skeleton className="h-6 w-1/2" />
-                    </div>
-                  ) : hadithOfTheDay ? (
-                    <div className="space-y-4">
-                      <p className="text-muted-foreground text-md leading-relaxed" dir={language === 'ur' ? 'rtl' : 'ltr'}>{language === 'ur' ? hadithOfTheDay.urdu : hadithOfTheDay.english}</p>
-                      <p className="text-sm text-primary font-semibold" dir={language === 'ur' ? 'rtl' : 'ltr'}>{t('chapter')}: {language === 'ur' ? hadithOfTheDay.urduChapterName : hadithOfTheDay.englishChapterName}</p>
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground">{t('hadithNotAvailable')}</p>
-                  )}
-               </CardContent>
-               <CardFooter>
-                  {hadithOfTheDay && (
-                    <p className="text-xs text-muted-foreground">{t('hadithNumber')}: {hadithOfTheDay.hadithNumber}</p>
-                  )}
-               </CardFooter>
-            </Card>
+            )}
+          </CardContent>
+          <CardFooter>
+            {surahOfTheDay && (
+                <Button asChild variant="default" size="sm">
+                    <Link href={`/${language}/read?surah=${surahOfTheDay.number}`}>{t('readSurah')}</Link>
+                </Button>
+            )}
+          </CardFooter>
+        </Card>
 
-            <Card className="flex flex-col justify-between bg-gradient-to-br from-primary/20 to-background shadow-xl flex-grow">
+        {/* Hadith of the Day */}
+        <Card className="flex flex-col justify-between bg-gradient-to-br from-accent/30 to-background shadow-xl">
+           <CardHeader>
+             <div className="flex items-center gap-4 text-primary">
+               <ScrollText className="w-8 h-8" />
+               <CardTitle className="font-headline text-2xl">{t('hadithOfTheDay')}</CardTitle>
+             </div>
+             <CardDescription>{t('sahihAlBukhari')}</CardDescription>
+           </CardHeader>
+           <CardContent className="flex-grow">
+            {loading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-6 w-1/2" />
+                </div>
+              ) : hadithOfTheDay ? (
+                <div className="space-y-4">
+                  <p className="text-muted-foreground text-sm leading-relaxed" dir={language === 'ur' ? 'rtl' : 'ltr'}>{language === 'ur' ? hadithOfTheDay.urdu : hadithOfTheDay.english}</p>
+                  <p className="text-xs text-primary font-semibold" dir={language === 'ur' ? 'rtl' : 'ltr'}>{t('chapter')}: {language === 'ur' ? hadithOfTheDay.urduChapterName : hadithOfTheDay.englishChapterName}</p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">{t('hadithNotAvailable')}</p>
+              )}
+           </CardContent>
+           <CardFooter>
+              {hadithOfTheDay && (
+                <p className="text-xs text-muted-foreground">{t('hadithNumber')}: {hadithOfTheDay.hadithNumber}</p>
+              )}
+           </CardFooter>
+        </Card>
+
+        {/* Islamic Date */}
+        <Card className="flex flex-col justify-between bg-gradient-to-br from-secondary/30 to-background shadow-xl">
+          <CardHeader>
+            <div className="flex items-center gap-4 text-primary">
+                <CalendarDays className="w-8 h-8" />
+                <CardTitle className="font-headline text-2xl">{t('islamicDate')}</CardTitle>
+            </div>
+             <CardDescription>{t('hijriCalendar')}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-grow">
+            {loading ? (
+                <div className="space-y-3">
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-5 w-1/2" />
+                </div>
+            ) : islamicDate ? (
+              <div className="text-center space-y-2">
+                <p className="text-3xl font-bold font-arabic">{islamicDate.date.hijri.day} {islamicDate.date.hijri.month.ar} {islamicDate.date.hijri.year}</p>
+                <p className="text-md text-muted-foreground">{islamicDate.date.hijri.weekday.ar}</p>
+              </div>
+            ) : (
+                <p className="text-muted-foreground">{t('dateNotAvailable')}</p>
+            )}
+          </CardContent>
+          <CardFooter>
+             <Button asChild variant="default" size="sm">
+                <Link href={`/${language}/calendar`}>{t('viewCalendar')}</Link>
+             </Button>
+          </CardFooter>
+        </Card>
+      </section>
+
+      {/* Features Section */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+        {features.map((feature) => (
+          <Card key={feature.title} className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 flex flex-col bg-card/80 backdrop-blur-sm">
+            <CardHeader className="flex-grow">
+              <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
+                <feature.icon className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle className="font-headline text-center">{feature.title}</CardTitle>
+              <CardDescription className="text-center pt-2">
+                {feature.description}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button asChild variant="default" className="w-full">
+                <Link href={feature.href}>{feature.buttonText}</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+         <Card className="lg:col-span-3 flex flex-col justify-between bg-gradient-to-br from-primary/20 to-background shadow-xl flex-grow">
                <CardHeader>
                  <div className="flex items-center gap-4 text-primary">
                    <BookHeart className="w-8 h-8" />
@@ -205,28 +269,6 @@ export default function Home() {
                   )}
                </CardContent>
             </Card>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {features.map((feature) => (
-          <Card key={feature.title} className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 flex flex-col bg-card/80 backdrop-blur-sm">
-            <CardHeader className="flex-grow">
-              <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
-                <feature.icon className="w-8 h-8 text-primary" />
-              </div>
-              <CardTitle className="font-headline text-center">{feature.title}</CardTitle>
-              <CardDescription className="text-center pt-2">
-                {feature.description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Button asChild variant="default" className="w-full">
-                <Link href={feature.href}>{feature.buttonText}</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
       </section>
     </div>
   );
