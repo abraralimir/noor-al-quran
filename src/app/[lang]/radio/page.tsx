@@ -12,11 +12,11 @@ const radioStations = [
   },
   {
     name: 'Quran in English',
-    streamUrl: 'https://Qurango.net/radio/translation_in_english',
+    streamUrl: 'https://live.mp3quran.net/eng',
   },
   {
     name: 'Quran in Urdu',
-    streamUrl: 'https://Qurango.net/radio/urdu_translation',
+    streamUrl: 'https://live.mp3quran.net/urd',
   },
   {
     name: 'Quran Tafseer',
