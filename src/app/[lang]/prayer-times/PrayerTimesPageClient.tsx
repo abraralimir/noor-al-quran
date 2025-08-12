@@ -18,6 +18,10 @@ const prayerIcons: Record<PrayerName, React.ElementType> = {
     Sunset: Sunset, // Adding sunset explicitly
 };
 
+// Default location (Mecca)
+const DEFAULT_LATITUDE = 21.4225;
+const DEFAULT_LONGITUDE = 39.8262;
+
 export function PrayerTimesPageClient() {
     const { t } = useTranslation();
     const [prayerTimes, setPrayerTimes] = useState<PrayerTimes | null>(null);
@@ -25,59 +29,68 @@ export function PrayerTimesPageClient() {
     const [error, setError] = useState<string | null>(null);
     const [locationInfo, setLocationInfo] = useState<{ city: string; country: string } | null>(null);
 
-    useEffect(() => {
-        const getCityName = async (latitude: number, longitude: number) => {
-            try {
-                // Using a free, no-key-required reverse geocoding API
-                const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
-                if (!response.ok) return null;
-                const data = await response.json();
-                return { city: data.city || 'Unknown City', country: data.countryName || 'Unknown Country' };
-            } catch (error) {
-                console.error("Could not fetch city name:", error);
-                return null;
-            }
-        };
+    const getCityName = async (latitude: number, longitude: number) => {
+        try {
+            // Using a free, no-key-required reverse geocoding API
+            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+            if (!response.ok) return null;
+            const data = await response.json();
+            return { city: data.city || 'Unknown City', country: data.countryName || 'Unknown Country' };
+        } catch (error) {
+            console.error("Could not fetch city name:", error);
+            return null;
+        }
+    };
 
+    const loadPrayerTimes = async (latitude: number, longitude: number) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const [times, location] = await Promise.all([
+                fetchPrayerTimes(latitude, longitude),
+                getCityName(latitude, longitude)
+            ]);
+
+            if (times) {
+                setPrayerTimes(times);
+                if (location) {
+                    setLocationInfo(location);
+                } else {
+                    // Fallback to timezone if reverse geocoding fails
+                    setLocationInfo({
+                        city: times.meta.timezone.split('/')[1]?.replace('_', ' ') || 'Mecca',
+                        country: times.meta.timezone.split('/')[0] || 'Saudi Arabia'
+                    });
+                }
+            } else {
+                setError(t('prayerTimesError'));
+            }
+        } catch (e) {
+            setError(t('prayerTimesError'));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    useEffect(() => {
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const { latitude, longitude } = position.coords;
-                    try {
-                        const [times, location] = await Promise.all([
-                            fetchPrayerTimes(latitude, longitude),
-                            getCityName(latitude, longitude)
-                        ]);
-
-                        if (times) {
-                            setPrayerTimes(times);
-                            if (location) {
-                                setLocationInfo(location);
-                            } else {
-                                // Fallback to timezone if reverse geocoding fails
-                                setLocationInfo({
-                                    city: times.meta.timezone.split('/')[1]?.replace('_', ' ') || 'Unknown City',
-                                    country: times.meta.timezone.split('/')[0] || 'Unknown Country'
-                                });
-                            }
-                        } else {
-                            setError(t('prayerTimesError'));
-                        }
-                    } catch (e) {
-                        setError(t('prayerTimesError'));
-                    } finally {
-                        setLoading(false);
-                    }
+                (position) => {
+                    loadPrayerTimes(position.coords.latitude, position.coords.longitude);
                 },
                 () => {
                     setError(t('locationPermissionError'));
-                    setLoading(false);
+                    // Load default location if permission is denied
+                    loadPrayerTimes(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
                 }
             );
         } else {
             setError(t('geolocationNotSupported'));
-            setLoading(false);
+            // Load default location if geolocation is not supported
+            loadPrayerTimes(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [t]);
 
     const displayOrder: PrayerName[] = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -91,23 +104,20 @@ export function PrayerTimesPageClient() {
         );
     }
 
-    if (error) {
-        return (
-            <Alert variant="destructive">
-                <AlertTitle>{t('error')}</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-            </Alert>
-        );
-    }
-    
     return (
         <div className="space-y-6">
+             {error && (
+                <Alert variant="destructive">
+                    <AlertTitle>{t('error')}</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
             <div className="text-center">
                 <h2 className="text-2xl font-bold">{locationInfo?.city}, {locationInfo?.country}</h2>
                 <p className="text-muted-foreground">{prayerTimes?.date.readable}</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                {displayOrder.map(name => {
+                {prayerTimes ? displayOrder.map(name => {
                     const Icon = prayerIcons[name];
                     return (
                         <Card key={name} className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -117,12 +127,14 @@ export function PrayerTimesPageClient() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-3xl font-bold text-foreground">
-                                    {prayerTimes?.timings[name].split(' ')[0]}
+                                    {prayerTimes?.timings[name as keyof typeof prayerTimes.timings]?.split(' ')[0]}
                                 </p>
                             </CardContent>
                         </Card>
                     );
-                })}
+                }) : (
+                     <p>{t('prayerTimesError')}</p>
+                )}
             </div>
         </div>
     );
