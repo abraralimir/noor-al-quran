@@ -5,7 +5,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "@/hooks/use-translation";
-import { BookOpen, Headphones, MessageCircleQuestion, ToyBrick } from "lucide-react";
+import { BookOpen, Headphones, MessageCircleQuestion, ToyBrick, BookMarked } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -37,7 +37,7 @@ export default function Home() {
       </section>
 
 
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 text-center">
         <Card className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 flex flex-col">
           <CardHeader className="flex-grow">
             <div className="mx-auto bg-accent/20 p-4 rounded-full w-fit">
@@ -68,6 +68,23 @@ export default function Home() {
           <CardContent>
             <Button asChild variant="default" className="bg-primary hover:bg-primary/90">
               <Link href={`/${language}/listen`}>{t('listenNow')}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 flex flex-col">
+          <CardHeader className="flex-grow">
+            <div className="mx-auto bg-accent/20 p-4 rounded-full w-fit">
+              <BookMarked className="w-10 h-10 text-accent-foreground" />
+            </div>
+            <CardTitle className="font-headline mt-4">{t('tafseerCardTitle')}</CardTitle>
+            <CardDescription>
+              {t('tafseerCardDescription')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="default" className="bg-primary hover:bg-primary/90">
+              <Link href={`/${language}/tafseer`}>{t('exploreTafseer')}</Link>
             </Button>
           </CardContent>
         </Card>

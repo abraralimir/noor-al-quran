@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Headphones, MessageCircle, ToyBrick } from 'lucide-react';
+import { BookOpen, Headphones, MessageCircle, ToyBrick, BookMarked } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AiSearch } from './AiSearch';
 import { useState, useEffect } from 'react';
@@ -17,6 +17,7 @@ export function Header() {
   const navLinks = [
     { href: `/${language}/read`, label: t('read'), icon: BookOpen },
     { href: `/${language}/listen`, label: t('listen'), icon: Headphones },
+    { href: `/${language}/tafseer`, label: t('tafseer'), icon: BookMarked },
     { href: `/${language}/tutor`, label: t('tutor'), icon: MessageCircle },
     { href: `/${language}/kids`, label: t('kids'), icon: ToyBrick },
   ];
@@ -44,7 +45,7 @@ export function Header() {
               href={href}
               className={cn(
                 'transition-colors hover:text-primary flex items-center gap-2',
-                pathname === href ? 'text-primary' : 'text-muted-foreground'
+                pathname.startsWith(href) ? 'text-primary' : 'text-muted-foreground'
               )}
             >
               <Icon className="h-4 w-4" />
