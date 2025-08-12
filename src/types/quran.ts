@@ -26,3 +26,9 @@ export interface Ayah {
 export interface SurahDetails extends Surah {
   ayahs: Ayah[];
 }
+
+export interface SpecialRecitation {
+    name: string;
+    keywords: string[];
+    verses: { surah: number; ayah: number; }[];
+}

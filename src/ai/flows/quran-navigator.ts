@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -12,7 +13,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const QuranNavigatorInputSchema = z.object({
-  command: z.string().describe('A command to navigate the Quran, e.g., "Open Surah Al-Fatiha", "Play Surah Al-Baqarah", or "Tafseer of Surah Al-Baqarah Ayah 255".'),
+  command: z.string().describe('A command to navigate the Quran, e.g., "Open Surah Al-Fatiha", "Play Surah Al-Baqarah", "Tafseer of Surah Al-Baqarah Ayah 255", or a specific verse like "qul huwallahu ahad".'),
 });
 export type QuranNavigatorInput = z.infer<typeof QuranNavigatorInputSchema>;
 
@@ -38,6 +39,7 @@ You must identify the action, the Surah name, and optionally the Ayah number.
 - If the command is unclear or not related to Quran navigation, set the action to 'unknown'.
 - The surahName should be the canonical English name of the Surah. If the Surah name starts with "Al-", "Ar-", "As-", etc., you MUST include that prefix in the output. Your goal is to return the most accurate, official English transliteration.
 - If the action is 'tafseer', you MUST also extract the ayah number if it is specified.
+- If the user provides a piece of an Ayah (verse), you must identify which Surah it belongs to.
 
 Here are some examples:
 - Command: "Open Surah Al-Fatiha" -> Output: { "action": "openSurah", "surahName": "Al-Fatiha" }
@@ -52,6 +54,8 @@ Here are some examples:
 - Command: "What's the weather like?" -> Output: { "action": "unknown" }
 - Command: "show me tafseer for surah al-nas" -> Output: { "action": "tafseer", "surahName": "An-Nas" }
 - Command: "interpretation of al-falaq" -> Output: { "action": "tafseer", "surahName": "Al-Falaq" }
+- Command: "read qul hu allahu ahad" -> Output: { "action": "openSurah", "surahName": "Al-Ikhlas" }
+- Command: "play bismillah" -> Output: { "action": "playSurah", "surahName": "Al-Fatiha" }
 
 Now, analyze the following user command.
 

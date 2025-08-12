@@ -8,13 +8,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import { Send, Play, Pause, LoaderCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { handleTutorQuery } from '@/actions/quran';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/hooks/use-translation';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
 
 const formSchema = z.object({
   question: z.string().min(1, 'Message cannot be empty.'),
@@ -24,7 +25,34 @@ type Message = {
   id: number;
   role: 'user' | 'assistant';
   content: string;
+  audioUrl?: string;
+  surahNumber?: number;
+  ayahNumber?: number;
 };
+
+function ChatAudioPlayer({ audioUrl, surahNumber, ayahNumber }: { audioUrl: string, surahNumber?: number, ayahNumber?: number }) {
+  const { togglePlayPause, isPlaying, isLoading, src } = useAudioPlayer();
+  const isThisAudioPlaying = isPlaying && src === audioUrl;
+
+  const title = surahNumber && ayahNumber ? `Surah ${surahNumber}, Ayah ${ayahNumber}` : 'Recitation';
+
+  const handlePlay = () => {
+    togglePlayPause(audioUrl, { title, artist: 'Noor Al Quran' });
+  };
+  
+  return (
+    <Button variant="outline" size="sm" onClick={handlePlay} className="mt-2">
+      {isLoading && src === audioUrl ? (
+        <LoaderCircle className="h-4 w-4 animate-spin mr-2" />
+      ) : isThisAudioPlaying ? (
+        <Pause className="h-4 w-4 mr-2" />
+      ) : (
+        <Play className="h-4 w-4 mr-2" />
+      )}
+      {isThisAudioPlaying ? 'Pause' : 'Play Recitation'}
+    </Button>
+  )
+}
 
 export function TutorChat() {
   const { language } = useLanguage();
@@ -60,6 +88,9 @@ export function TutorChat() {
         id: Date.now() + 1,
         role: 'assistant',
         content: result.answer,
+        audioUrl: result.audioUrl,
+        surahNumber: result.surahNumber,
+        ayahNumber: result.ayahNumber,
       };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (e) {
@@ -104,6 +135,13 @@ export function TutorChat() {
                    dir={language === 'ur' && message.role === 'assistant' ? 'rtl' : 'ltr'}>
                   {message.content}
                 </p>
+                {message.audioUrl && (
+                  <ChatAudioPlayer 
+                    audioUrl={message.audioUrl} 
+                    surahNumber={message.surahNumber}
+                    ayahNumber={message.ayahNumber}
+                  />
+                )}
               </div>
                {message.role === 'user' && (
                 <Avatar className="h-8 w-8">

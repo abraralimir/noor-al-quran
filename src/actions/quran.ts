@@ -4,7 +4,7 @@
 import { quranNavigator } from '@/ai/flows/quran-navigator';
 import { quranTutor } from '@/ai/flows/quran-tutor';
 import { writingInstructor } from '@/ai/flows/writing-instructor';
-import { getSurahs, getSurah } from '@/lib/quran-api';
+import { getSurahs, getSurah, getAyahAudioUrl } from '@/lib/quran-api';
 import { selectTafseerAudio } from '@/ai/flows/tafseer-audio-selector';
 import type { Surah } from '@/types/quran';
 
@@ -65,12 +65,31 @@ export async function handleNavigationCommand(command: string, lang: 'en' | 'ur'
 
 interface TutorResult {
   answer: string;
+  audioUrl?: string;
+  surahNumber?: number;
+  ayahNumber?: number;
 }
 
 export async function handleTutorQuery(question: string, language: 'en' | 'ur' = 'en'): Promise<TutorResult> {
   try {
     const tutorOutput = await quranTutor({ question, language });
-    return { answer: tutorOutput.answer };
+    
+    let result: TutorResult = { answer: tutorOutput.answer };
+    
+    if (tutorOutput.surahNumber && tutorOutput.ayahNumber) {
+        const surah = await getSurah(tutorOutput.surahNumber);
+        const ayah = surah?.ayahs.find(a => a.numberInSurah === tutorOutput.ayahNumber);
+        if (ayah) {
+            result.audioUrl = getAyahAudioUrl(ayah.number);
+            result.surahNumber = tutorOutput.surahNumber;
+            result.ayahNumber = tutorOutput.ayahNumber;
+        }
+    } else if (tutorOutput.audioUrl) {
+        result.audioUrl = tutorOutput.audioUrl;
+    }
+
+    return result;
+
   } catch (error) {
     console.error('Error handling tutor query:', error);
     return { answer: "I'm sorry, I encountered an issue while trying to answer your question. Please try again." };
