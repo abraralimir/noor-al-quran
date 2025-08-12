@@ -8,7 +8,6 @@ import React from 'react';
 import { Button } from '../ui/button';
 import { Play, Pause, LoaderCircle } from 'lucide-react';
 import { useAudioPlayer } from '@/hooks/use-audio-player';
-import { useState } from 'react';
 
 interface AyahCardProps {
   ayah: Ayah;
@@ -17,35 +16,31 @@ interface AyahCardProps {
 
 export function AyahCard({ ayah, surahNumber }: AyahCardProps) {
   const { language } = useLanguage();
-  const [isPlayingThis, setIsPlayingThis] = useState(false);
+  
+  const audioSrc = `https://cdn.islamic.network/quran/audio/64/ar.abdurrahmaansudais/${ayah.number}.mp3`;
 
   // This hook will now control a single, shared audio element.
-  const { togglePlayPause, isLoading, isPlaying, src } = useAudioPlayer({
-      src: isPlayingThis ? ayah.audio : undefined,
-      onEnded: () => setIsPlayingThis(false),
-      mediaMetadata: {
-          title: `Surah ${surahNumber}, Ayah ${ayah.numberInSurah}`,
-          artist: 'Abdur-Rahman as-Sudais'
-      }
-  });
+  const { togglePlayPause, isLoading, isPlaying, src } = useAudioPlayer();
 
-  const currentlyPlayingThisAyah = isPlaying && src === ayah.audio;
+  const currentlyPlayingThisAyah = isPlaying && src === audioSrc;
 
   const handlePlayClick = () => {
-      // If another ayah is playing, this will stop it and start the new one.
-      // If this ayah is playing, it will pause it.
-      // If nothing is playing, it will start this one.
-      setIsPlayingThis(!currentlyPlayingThisAyah);
+    togglePlayPause(audioSrc, {
+      title: `Surah ${surahNumber}, Ayah ${ayah.numberInSurah}`,
+      artist: 'Abdur-Rahman as-Sudais'
+    });
   }
 
   return (
     <div className="space-y-4 p-4 rounded-lg border bg-card">
       <div className="flex justify-between items-center">
-        <Button size="icon" variant="ghost" onClick={handlePlayClick} disabled={isLoading && isPlayingThis}>
-            {isLoading && isPlayingThis ? (
+        <Button size="icon" variant="ghost" onClick={handlePlayClick} disabled={isLoading && src === audioSrc}>
+            {isLoading && src === audioSrc ? (
                 <LoaderCircle className="h-5 w-5 animate-spin" />
             ) : (
-                <Play className={cn("h-5 w-5", currentlyPlayingThisAyah && "text-primary fill-primary")} />
+                currentlyPlayingThisAyah ? 
+                <Pause className="h-5 w-5 text-primary fill-primary" /> :
+                <Play className="h-5 w-5" />
             )}
         </Button>
         <p dir="rtl" className="text-2xl lg:text-3xl font-arabic leading-loose text-right text-foreground">

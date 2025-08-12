@@ -55,17 +55,6 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     }
   };
 
-  useEffect(() => {
-    if (surahs.length > 0 && initialSurahNumber) {
-      const initialSurah = surahs.find(s => s.number.toString() === initialSurahNumber);
-      if (initialSurah) {
-        setPlaylist([initialSurah]);
-        setCurrentPlaylistIndex(0);
-        setSelectedSurahNumber(undefined); // Play from playlist
-      }
-    }
-  }, [surahs, initialSurahNumber]);
-
   const audioUrl = currentPlayingSurah ? getSurahAudioUrl(currentPlayingSurah.number) : undefined;
   
   const { 
@@ -78,15 +67,50 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
     handleSliderChange,
     formatTime 
   } = useAudioPlayer({ 
-    src: audioUrl,
-    onEnded: handleNext, // Autoplay next
-    mediaMetadata: currentPlayingSurah ? {
-        title: `Surah ${currentPlayingSurah.englishName}`,
-        artist: 'Mishary Rashid Alafasy',
-        album: 'Noor Al Quran',
-    } : undefined,
-    autoplay: !!initialSurahNumber || currentPlaylistIndex !== -1
+    onEnded: handleNext,
   });
+
+  const handleTogglePlay = () => {
+    if(currentPlayingSurah) {
+        const audioUrl = getSurahAudioUrl(currentPlayingSurah.number);
+        togglePlayPause(audioUrl, {
+             title: `Surah ${currentPlayingSurah.englishName}`,
+             artist: 'Mishary Rashid Alafasy',
+             album: 'Noor Al Quran',
+        });
+    }
+  };
+
+  useEffect(() => {
+    if (surahs.length > 0 && initialSurahNumber) {
+      const initialSurah = surahs.find(s => s.number.toString() === initialSurahNumber);
+      if (initialSurah) {
+        setPlaylist([initialSurah]);
+        setCurrentPlaylistIndex(0);
+        setSelectedSurahNumber(undefined); // Play from playlist
+      }
+    }
+  }, [surahs, initialSurahNumber]);
+
+  useEffect(() => {
+    const playCurrent = () => {
+        if(currentPlayingSurah) {
+            const audioUrl = getSurahAudioUrl(currentPlayingSurah.number);
+            togglePlayPause(audioUrl, {
+                title: `Surah ${currentPlayingSurah.englishName}`,
+                artist: 'Mishary Rashid Alafasy',
+                album: 'Noor Al Quran',
+            });
+        }
+    };
+    
+    // Autoplay when the current playing Surah changes (from next/prev)
+    if (currentPlayingSurah) {
+        playCurrent();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPlayingSurah?.number]); // Rerun only when surah number changes
+
 
   const handleSelectSurah = (surahNumber: string) => {
     setPlaylist([]);
@@ -230,7 +254,7 @@ export function SurahAudioPlayer({ surahs, initialSurahNumber }: SurahAudioPlaye
           <Button variant="ghost" size="icon" onClick={() => seek(-10)} aria-label={t('rewind10Seconds')} disabled={!currentPlayingSurah || isLoading}>
             <Rewind className="h-6 w-6" />
           </Button>
-          <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={togglePlayPause} aria-label={isPlaying ? t('pause') : t('play')} disabled={!currentPlayingSurah || isLoading}>
+          <Button variant="default" size="icon" className="h-16 w-16 rounded-full" onClick={handleTogglePlay} aria-label={isPlaying ? t('pause') : t('play')} disabled={!currentPlayingSurah || isLoading}>
             {isLoading ? <LoaderCircle className="h-8 w-8 animate-spin" /> : (isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />)}
           </Button>
           <Button variant="ghost" size="icon" onClick={() => seek(10)} aria-label={t('fastForward10Seconds')} disabled={!currentPlayingSurah || isLoading}>

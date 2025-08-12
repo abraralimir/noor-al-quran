@@ -41,7 +41,7 @@ export async function generateMetadata(
       siteName: t.noorAlQuran,
       images: [
         {
-          url: `${siteUrl}/book-1920.jpg`,
+          url: `/book-1920.jpg`, // Relative to metadataBase
           width: 1920,
           height: 1280,
           alt: t.quranImageAlt,
@@ -54,7 +54,7 @@ export async function generateMetadata(
       card: 'summary_large_image',
       title: t.noorAlQuran,
       description: t.appDescription,
-      images: [`${siteUrl}/book-1920.jpg`],
+      images: [`/book-1920.jpg`], // Relative to metadataBase
     },
   }
 }

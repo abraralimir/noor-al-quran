@@ -13,23 +13,17 @@ interface RadioPlayerCardProps {
 }
 
 export function RadioPlayerCard({ name, streamUrl }: RadioPlayerCardProps) {
-  const [isPlayingThis, setIsPlayingThis] = useState(false);
   
-  const { isPlaying, isLoading, isLive, src } = useAudioPlayer({
-    src: isPlayingThis ? streamUrl : undefined,
-    autoplay: isPlayingThis, // Autoplay when this card is activated
-    onEnded: () => setIsPlayingThis(false), // Deactivate on end
-    mediaMetadata: {
-        title: name,
-        artist: 'Live Radio',
-        album: 'Noor Al Quran'
-    }
-  });
+  const { isPlaying, isLoading, isLive, src, togglePlayPause } = useAudioPlayer();
   
   const currentlyPlayingThis = isPlaying && src === streamUrl;
 
   const handleTogglePlay = () => {
-    setIsPlayingThis(prev => !prev);
+    togglePlayPause(streamUrl, {
+        title: name,
+        artist: 'Live Radio',
+        album: 'Noor Al Quran'
+    });
   }
 
   return (
@@ -58,9 +52,9 @@ export function RadioPlayerCard({ name, streamUrl }: RadioPlayerCardProps) {
           className="h-12 w-12 rounded-full"
           onClick={handleTogglePlay}
           aria-label={currentlyPlayingThis ? 'Pause' : 'Play'}
-          disabled={isLoading && isPlayingThis}
+          disabled={isLoading && src === streamUrl}
         >
-          {isLoading && isPlayingThis ? (
+          {isLoading && src === streamUrl ? (
             <LoaderCircle className="h-6 w-6 animate-spin" />
           ) : currentlyPlayingThis ? (
             <Pause className="h-6 w-6" />
