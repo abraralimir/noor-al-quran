@@ -39,12 +39,14 @@ async function getAudioUrl(surahNumber: number, language: 'en' | 'ur'): Promise<
         const surahs = await getSurahs();
         const surah = surahs.find(s => s.number === surahNumber);
         if (!surah) {
-            // Fallback or error
+            // Fallback just in case, though it's unlikely to be needed.
             return `${englishTafseerBaseUrl}/${paddedSurah}.mp3`;
         }
-        // Example filename: "001 Surah Al-Fatihah.mp3"
-        const surahName = surah.englishName.replace("Al-","Al ").replace("As-","As ").replace("Ad-","Ad ").replace("Ar-","Ar ").replace("At-","At ");
-        return `${englishTafseerBaseUrl}/${paddedSurah}%20Surah%20${surahName}.mp3`;
+        // Correctly format the name to match archive.org filenames like "001 Surah Al-Fatihah.mp3"
+        // This handles cases like "An-Nas", "Ash-Shams" etc. by adding a space after the prefix.
+        const surahName = surah.englishName.replace(/^(Al-)|(As-)|(Ad-)|(Ar-)|(At-)/, (match) => match.slice(0, -1) + ' ');
+        const encodedSurahName = encodeURIComponent(surahName);
+        return `${englishTafseerBaseUrl}/${paddedSurah}%20Surah%20${encodedSurahName}.mp3`;
     }
 }
 
