@@ -34,6 +34,9 @@ export async function generateMetadata(
       icon: '/book-1920.jpg',
       apple: '/book-1920.jpg',
     },
+    verification: {
+      google: 'jM_hZkfmPNhc_xizxgvx9zUN5gN0TZPTanYbctu-xs0',
+    },
     openGraph: {
       title: t.noorAlQuran,
       description: t.appDescription,
