@@ -10,6 +10,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { getSurahs } from '@/lib/quran-api';
 import { z } from 'genkit';
 
 const TafseerAudioInputSchema = z.object({
@@ -25,19 +26,25 @@ export type TafseerAudioOutput = z.infer<typeof TafseerAudioOutputSchema>;
 
 
 const urduBayanulQuranBaseUrl = 'https://archive.org/download/bayan-ul-quran-by-dr.-israr-ahmed';
-const englishTafseerBaseUrl = 'https://archive.org/download/english-tafseer-by-abu-muhammad-wasiullah-abbas';
+const englishTafseerBaseUrl = 'https://archive.org/download/TafseerIbnKathir-Eng-MuftiAbuLayth';
 
 
-function getAudioUrl(surahNumber: number, language: 'en' | 'ur'): string {
+async function getAudioUrl(surahNumber: number, language: 'en' | 'ur'): Promise<string> {
     const paddedSurah = surahNumber.toString().padStart(3, '0');
     if (language === 'ur') {
         // Dr. Israr Ahmed's Bayan-ul-Quran
         return `${urduBayanulQuranBaseUrl}/Bayan-ul-Quran-${paddedSurah}.mp3`;
     } else {
-        // Wasiullah Abbas's English Tafseer
-        // Pad with two zeros for surahs 1-9
-        const englishPaddedSurah = surahNumber.toString().padStart(3, '0');
-        return `${englishTafseerBaseUrl}/${englishPaddedSurah}-surah-al-fatihah.mp3`; // This naming is an example, it likely varies.
+        // English Tafsir by Mufti Abu Layth (based on Ibn Kathir)
+        const surahs = await getSurahs();
+        const surah = surahs.find(s => s.number === surahNumber);
+        if (!surah) {
+            // Fallback or error
+            return `${englishTafseerBaseUrl}/${paddedSurah}.mp3`;
+        }
+        // Example filename: "001 Surah Al-Fatihah.mp3"
+        const surahName = surah.englishName.replace("Al-","Al ").replace("As-","As ").replace("Ad-","Ad ").replace("Ar-","Ar ").replace("At-","At ");
+        return `${englishTafseerBaseUrl}/${paddedSurah}%20Surah%20${surahName}.mp3`;
     }
 }
 
@@ -53,7 +60,7 @@ const selectTafseerAudioFlow = ai.defineFlow(
   },
   async ({ surahNumber, language }) => {
     // This flow doesn't need to call a prompt, it can just have business logic.
-    const audioUrl = getAudioUrl(surahNumber, language);
+    const audioUrl = await getAudioUrl(surahNumber, language);
     return { audioUrl };
   }
 );
