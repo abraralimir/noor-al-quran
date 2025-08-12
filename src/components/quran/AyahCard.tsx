@@ -19,7 +19,7 @@ export function AyahCard({ ayah, surahNumber }: AyahCardProps) {
   
   const audioSrc = `https://cdn.islamic.network/quran/audio/64/ar.abdurrahmaansudais/${ayah.number}.mp3`;
 
-  const { togglePlayPause, isLoading, isPlaying, play, pause } = useAudioPlayer({
+  const { togglePlayPause, isLoading, isPlaying } = useAudioPlayer({
     src: audioSrc,
     mediaMetadata: {
       title: `Surah ${surahNumber}, Ayah ${ayah.numberInSurah}`,
