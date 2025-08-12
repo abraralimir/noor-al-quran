@@ -81,5 +81,10 @@
   "tuneIn": "سنیں",
   "watchNow": "ابھی دیکھیں",
   "surahOfTheDay": "آج کی سورت",
-  "readSurah": "سورت پڑھیں"
+  "readSurah": "سورت پڑھیں",
+  "hadithOfTheDay": "آج کی حدیث",
+  "sahihAlBukhari": "صحیح البخاری سے",
+  "chapter": "باب",
+  "hadithNotAvailable": "اس وقت حدیث لوڈ نہیں کی جا سکی۔",
+  "hadithNumber": "حدیث نمبر"
 }

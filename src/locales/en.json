@@ -81,5 +81,10 @@
   "tuneIn": "Tune In",
   "watchNow": "Watch Now",
   "surahOfTheDay": "Surah of the Day",
-  "readSurah": "Read Surah"
+  "readSurah": "Read Surah",
+  "hadithOfTheDay": "Hadith of the Day",
+  "sahihAlBukhari": "From Sahih al-Bukhari",
+  "chapter": "Chapter",
+  "hadithNotAvailable": "Hadith could not be loaded at this time.",
+  "hadithNumber": "Hadith No"
 }
