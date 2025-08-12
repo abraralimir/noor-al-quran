@@ -155,8 +155,8 @@ export default function Home() {
                 </div>
               ) : hadithOfTheDay ? (
                 <div className="space-y-4">
-                  <p className="text-muted-foreground text-lg leading-relaxed">{language === 'ur' ? hadithOfTheDay.urdu : hadithOfTheDay.english}</p>
-                  <p className="text-sm text-primary font-semibold">{t('chapter')}: {language === 'ur' ? hadithOfTheDay.urduChapterName : hadithOfTheDay.englishChapterName}</p>
+                  <p className="text-muted-foreground text-lg leading-relaxed" dir={language === 'ur' ? 'rtl' : 'ltr'}>{language === 'ur' ? hadithOfTheDay.urdu : hadithOfTheDay.english}</p>
+                  <p className="text-sm text-primary font-semibold" dir={language === 'ur' ? 'rtl' : 'ltr'}>{t('chapter')}: {language === 'ur' ? hadithOfTheDay.urduChapterName : hadithOfTheDay.englishChapterName}</p>
                 </div>
               ) : (
                 <p className="text-muted-foreground">{t('hadithNotAvailable')}</p>
