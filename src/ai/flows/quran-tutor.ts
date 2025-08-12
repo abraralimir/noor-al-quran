@@ -128,10 +128,13 @@ const quranTutorFlow = ai.defineFlow(
 
     // Handle special audio requests first
     if (lowerCaseQuestion.includes('ayat al kursi') || lowerCaseQuestion.includes('ayatul kursi')) {
+        const surah = await getSurah(2);
+        const ayah = surah?.ayahs.find(a => a.numberInSurah === 255);
         return { 
             answer: "Here is the recitation of Ayat al-Kursi.",
             surahNumber: 2,
-            ayahNumber: 255
+            ayahNumber: 255,
+            audioUrl: ayah ? getAyahAudioUrl(ayah.number) : undefined,
         };
     }
     
@@ -144,6 +147,15 @@ const quranTutorFlow = ai.defineFlow(
     }
 
     const {output} = await prompt(input);
+
+    if (output && output.surahNumber && output.ayahNumber) {
+        const surah = await getSurah(output.surahNumber);
+        const ayah = surah?.ayahs.find(a => a.numberInSurah === output.ayahNumber);
+        if(ayah) {
+            output.audioUrl = getAyahAudioUrl(ayah.number);
+        }
+    }
+    
     return output!;
   }
 );
