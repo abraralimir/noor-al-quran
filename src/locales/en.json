@@ -47,7 +47,7 @@
   "loadingSurahs": "Loading Surahs...",
   "readQuran": "Read Quran",
   "surahNotFound": "Surah Not Found",
-  "surahNotFoundDescription": "The requested Surah could not be loaded. Please try again.",
+  "surahNotFoundDescription": "The requested Tafseer could not be loaded. Please try another Surah.",
   "bookView": "Book View",
   "tutorPageDescription": "Ask questions about the Quran. Our AI tutor, Noor, is here to help you learn.",
   "tutorInputPlaceholder": "Ask about the Quran...",
@@ -66,5 +66,6 @@
   "tafseerBy": "Tafseer by",
   "tafseerCardTitle": "Tafseer",
   "tafseerCardDescription": "Get detailed explanations and interpretations of any Surah.",
-  "exploreTafseer": "Explore Tafseer"
+  "exploreTafseer": "Explore Tafseer",
+  "error": "Error"
 }

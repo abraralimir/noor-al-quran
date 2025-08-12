@@ -47,7 +47,7 @@
   "loadingSurahs": "سورتیں لوڈ ہو رہی ہیں...",
   "readQuran": "قرآن پڑھیں",
   "surahNotFound": "سورت نہیں ملی",
-  "surahNotFoundDescription": "درخواست کردہ سورت لوڈ نہیں کی جا سکی۔ براہ مہربانی دوبارہ کوشش کریں.",
+  "surahNotFoundDescription": "درخواست کردہ تفسیر لوڈ نہیں کی جا سکی۔ براہ کرم دوسری سورت آزمائیں۔",
   "bookView": "کتاب کا منظر",
   "tutorPageDescription": "قرآن کے بارے میں سوالات پوچھیں۔ ہمارا AI ٹیوٹر، نور، آپ کو سیکھنے میں مدد کے لیے حاضر ہے۔",
   "tutorInputPlaceholder": "قرآن کے بارے میں پوچھیں...",
@@ -66,5 +66,6 @@
   "tafseerBy": "تفسیر از",
   "tafseerCardTitle": "تفسیر",
   "tafseerCardDescription": "کسی بھی سورت کی تفصیلی وضاحتیں اور تشریحات حاصل کریں۔",
-  "exploreTafseer": "تفسیر دریافت کریں"
+  "exploreTafseer": "تفسیر دریافت کریں",
+  "error": "خرابی"
 }

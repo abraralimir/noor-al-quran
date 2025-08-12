@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Surah } from '@/types/quran';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useTranslation } from '@/hooks/use-translation';
-import { getSurahTafseer, Tafseer, TafseerAyah } from '@/actions/quran';
+import { getSurahTafseer, Tafseer } from '@/actions/quran';
 import { LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSearchParams } from 'next/navigation';
@@ -41,42 +41,42 @@ export function TafseerPageClient({ surahs }: TafseerPageClientProps) {
   });
 
   const selectedSurahNumber = form.watch('surah');
-  const selectedSurah = surahs.find(s => s.number.toString() === selectedSurahNumber);
   
+  const handleFetchTafseer = async (surahNum: string) => {
+    if (!surahNum) return;
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+        const response = await getSurahTafseer(parseInt(surahNum, 10), language);
+        if (response) {
+            setResult(response);
+        } else {
+            setError(t('surahNotFoundDescription'));
+        }
+    } catch (e) {
+        setError(t('tutorPageDescription')); // A generic error message
+    } finally {
+        setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
     const surahParam = searchParams.get('surah');
     if (surahParam) {
       form.setValue('surah', surahParam);
-      form.handleSubmit(onSubmit)();
+      handleFetchTafseer(surahParam);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, form.setValue]);
   
   useEffect(() => {
     if (selectedSurahNumber) {
-        form.handleSubmit(onSubmit)();
+        handleFetchTafseer(selectedSurahNumber);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSurahNumber]);
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
-    setError(null);
-    setResult(null);
-
-    try {
-        const response = await getSurahTafseer(parseInt(values.surah, 10), language);
-        if (response) {
-            setResult(response);
-        } else {
-            setError("Could not retrieve the Tafseer for the selected Surah. Please try again.");
-        }
-    } catch (e) {
-        setError("An unexpected error occurred.");
-    } finally {
-        setIsLoading(false);
-    }
-  }
 
   return (
     <div className="space-y-8">
@@ -86,7 +86,7 @@ export function TafseerPageClient({ surahs }: TafseerPageClientProps) {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -126,7 +126,7 @@ export function TafseerPageClient({ surahs }: TafseerPageClientProps) {
 
       {error && (
          <Alert variant="destructive">
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>{t('error')}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -138,12 +138,12 @@ export function TafseerPageClient({ surahs }: TafseerPageClientProps) {
                 <CardDescription>{t('tafseerBy')} {result.tafseer_name}</CardDescription>
             </CardHeader>
             <CardContent>
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="single" collapsible className="w-full" defaultValue={searchParams.get('ayah') ? `item-${searchParams.get('ayah')}` : undefined}>
                     {result.ayahs.map(ayah => (
                        <AccordionItem key={ayah.ayah_number} value={`item-${ayah.ayah_number}`}>
                             <AccordionTrigger>
-                                <span className="flex items-center gap-4">
-                                   <span className="text-sm font-mono text-accent bg-accent/10 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
+                                <span className="flex items-center gap-4 w-full">
+                                   <span className="text-sm font-mono text-accent-foreground bg-accent/20 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
                                         {ayah.ayah_number}
                                     </span>
                                     <span className="font-arabic text-xl text-right flex-grow" dir="rtl">{ayah.ayah_text}</span>
