@@ -50,6 +50,8 @@ Here are some examples:
 - Command: "tafseer al ikhlas" -> Output: { "action": "tafseer", "surahName": "Al-Ikhlas" }
 - Command: "what is surah iklas about" -> Output: { "action": "unknown" }
 - Command: "What's the weather like?" -> Output: { "action": "unknown" }
+- Command: "show me tafseer for surah al-nas" -> Output: { "action": "tafseer", "surahName": "An-Nas" }
+- Command: "interpretation of al-falaq" -> Output: { "action": "tafseer", "surahName": "Al-Falaq" }
 
 Now, analyze the following user command.
 

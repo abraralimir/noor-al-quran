@@ -4,8 +4,7 @@
 import { quranNavigator } from '@/ai/flows/quran-navigator';
 import { quranTutor } from '@/ai/flows/quran-tutor';
 import { writingInstructor } from '@/ai/flows/writing-instructor';
-import { getSurahs, getSurah } from '@/lib/quran-api';
-import type { Surah, Ayah } from '@/types/quran';
+import { getSurahs } from '@/lib/quran-api';
 
 interface NavigationResult {
   path?: string;
@@ -111,25 +110,26 @@ export interface Tafseer {
 }
 
 export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): Promise<Tafseer | null> {
-    // Tafseer IDs: 1 for English (Saheeh International), 4 for Urdu (Tafheem-ul-Quran)
-    const tafseerId = lang === 'en' ? 1 : 4; 
+    const edition = lang === 'en' ? 'en-tafisr-ibn-kathir' : 'ur-tafsir-bayan-ul-quran';
+    const baseUrl = `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir`;
+    
     try {
-        const url = `http://api.quran-tafseer.com/tafseer/${tafseerId}/${surahNumber}`;
+        const url = `${baseUrl}/${edition}/${surahNumber}.json`;
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`Failed to fetch Tafseer for Surah ${surahNumber}`);
+            throw new Error(`Failed to fetch Tafseer for Surah ${surahNumber} from ${url}`);
         }
         const data = await response.json();
 
-        const ayahs: TafseerAyah[] = data.ayahs.map((ayah: any) => ({
-            ayah_number: ayah.ayah_number,
-            ayah_text: ayah.ayah_text,
-            tafseer_text: ayah.tafseer_text,
+        const ayahs: TafseerAyah[] = data.tafsir.map((ayah: any) => ({
+            ayah_number: parseInt(ayah.ayah, 10),
+            ayah_text: ayah.text,
+            tafseer_text: ayah.tafsir,
         }));
         
         return {
-          tafseer_id: data.tafseer_id,
-          tafseer_name: data.tafseer_name,
+          tafseer_id: data.id,
+          tafseer_name: data.name,
           surah_name: data.surah_name,
           ayahs: ayahs,
         };
