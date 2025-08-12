@@ -4,36 +4,39 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "@/hooks/use-translation";
-import { BookOpen, Headphones, MessageCircleQuestion, ToyBrick, BookMarked, Tv, Radio } from "lucide-react";
+import { BookOpen, Headphones, MessageCircleQuestion, ToyBrick, BookMarked, Tv, Radio, Sun, BookHeart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Surah } from "@/types/quran";
 import type { Hadith } from "@/types/hadith";
+import type { Dua } from "@/types/dua";
 import { getSurahOfTheDay } from "@/actions/quran";
 import { getHadithOfTheDay } from "@/actions/hadith";
+import { fetchDuaOfTheDay } from "@/actions/dua";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollText } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const { t, language } = useTranslation();
   const [surahOfTheDay, setSurahOfTheDay] = useState<Surah | null>(null);
   const [hadithOfTheDay, setHadithOfTheDay] = useState<Hadith | null>(null);
+  const [duaOfTheDay, setDuaOfTheDay] = useState<Dua | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [surah, hadith] = await Promise.all([
+        const [surah, hadith, dua] = await Promise.all([
           getSurahOfTheDay(),
-          getHadithOfTheDay()
+          getHadithOfTheDay(),
+          fetchDuaOfTheDay()
         ]);
-        if (surah) {
-          setSurahOfTheDay(surah);
-        }
-        if (hadith) {
-          setHadithOfTheDay(hadith);
-        }
+        if (surah) setSurahOfTheDay(surah);
+        if (hadith) setHadithOfTheDay(hadith);
+        if (dua) setDuaOfTheDay(dua);
+
       } catch (error) {
         console.error("Failed to fetch daily data:", error);
       } finally {
@@ -64,6 +67,13 @@ export default function Home() {
       href: `/${language}/tafseer`,
       buttonText: t('exploreTafseer'),
       icon: BookMarked,
+    },
+    {
+        title: t('prayerTimesTitle'),
+        description: t('prayerTimesCardDescription'),
+        href: `/${language}/prayer-times`,
+        buttonText: t('viewPrayerTimes'),
+        icon: Sun
     },
     {
       title: t('radio'),
@@ -139,35 +149,63 @@ export default function Home() {
           </div>
         </div>
         
-        <Card className="flex flex-col justify-between bg-gradient-to-br from-accent/30 to-background shadow-xl">
-           <CardHeader>
-             <div className="flex items-center gap-4 text-primary">
-               <ScrollText className="w-8 h-8" />
-               <CardTitle className="font-headline text-3xl">{t('hadithOfTheDay')}</CardTitle>
-             </div>
-             <CardDescription>{t('sahihAlBukhari')}</CardDescription>
-           </CardHeader>
-           <CardContent className="flex-grow">
-            {loading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-20 w-full" />
-                  <Skeleton className="h-6 w-1/2" />
-                </div>
-              ) : hadithOfTheDay ? (
-                <div className="space-y-4">
-                  <p className="text-muted-foreground text-lg leading-relaxed" dir={language === 'ur' ? 'rtl' : 'ltr'}>{language === 'ur' ? hadithOfTheDay.urdu : hadithOfTheDay.english}</p>
-                  <p className="text-sm text-primary font-semibold" dir={language === 'ur' ? 'rtl' : 'ltr'}>{t('chapter')}: {language === 'ur' ? hadithOfTheDay.urduChapterName : hadithOfTheDay.englishChapterName}</p>
-                </div>
-              ) : (
-                <p className="text-muted-foreground">{t('hadithNotAvailable')}</p>
-              )}
-           </CardContent>
-           <CardFooter>
-              {hadithOfTheDay && (
-                <p className="text-xs text-muted-foreground">{t('hadithNumber')}: {hadithOfTheDay.hadithNumber}</p>
-              )}
-           </CardFooter>
-        </Card>
+        <div className="flex flex-col gap-8">
+            <Card className="flex flex-col justify-between bg-gradient-to-br from-accent/30 to-background shadow-xl flex-grow">
+               <CardHeader>
+                 <div className="flex items-center gap-4 text-primary">
+                   <ScrollText className="w-8 h-8" />
+                   <CardTitle className="font-headline text-3xl">{t('hadithOfTheDay')}</CardTitle>
+                 </div>
+                 <CardDescription>{t('sahihAlBukhari')}</CardDescription>
+               </CardHeader>
+               <CardContent className="flex-grow">
+                {loading ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-16 w-full" />
+                      <Skeleton className="h-6 w-1/2" />
+                    </div>
+                  ) : hadithOfTheDay ? (
+                    <div className="space-y-4">
+                      <p className="text-muted-foreground text-md leading-relaxed" dir={language === 'ur' ? 'rtl' : 'ltr'}>{language === 'ur' ? hadithOfTheDay.urdu : hadithOfTheDay.english}</p>
+                      <p className="text-sm text-primary font-semibold" dir={language === 'ur' ? 'rtl' : 'ltr'}>{t('chapter')}: {language === 'ur' ? hadithOfTheDay.urduChapterName : hadithOfTheDay.englishChapterName}</p>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">{t('hadithNotAvailable')}</p>
+                  )}
+               </CardContent>
+               <CardFooter>
+                  {hadithOfTheDay && (
+                    <p className="text-xs text-muted-foreground">{t('hadithNumber')}: {hadithOfTheDay.hadithNumber}</p>
+                  )}
+               </CardFooter>
+            </Card>
+
+            <Card className="flex flex-col justify-between bg-gradient-to-br from-primary/20 to-background shadow-xl flex-grow">
+               <CardHeader>
+                 <div className="flex items-center gap-4 text-primary">
+                   <BookHeart className="w-8 h-8" />
+                   <CardTitle className="font-headline text-3xl">{t('duaOfTheDay')}</CardTitle>
+                 </div>
+               </CardHeader>
+               <CardContent className="flex-grow">
+                {loading ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-5 w-full" />
+                    </div>
+                  ) : duaOfTheDay ? (
+                    <div className="space-y-4">
+                        <p className="font-arabic text-2xl text-right leading-loose" dir="rtl">{duaOfTheDay.arabic}</p>
+                        <p className={cn("italic text-muted-foreground", language === 'ur' ? 'text-right font-urdu' : '')} dir={language === 'ur' ? 'rtl' : 'ltr'}>
+                            {language === 'ur' ? duaOfTheDay.urduTranslation : duaOfTheDay.englishTranslation}
+                        </p>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">{t('duaNotAvailable')}</p>
+                  )}
+               </CardContent>
+            </Card>
+        </div>
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
