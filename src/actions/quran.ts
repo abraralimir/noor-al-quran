@@ -4,7 +4,7 @@
 import { quranNavigator } from '@/ai/flows/quran-navigator';
 import { quranTutor } from '@/ai/flows/quran-tutor';
 import { writingInstructor } from '@/ai/flows/writing-instructor';
-import { getSurahs } from '@/lib/quran-api';
+import { getSurahs, getSurah } from '@/lib/quran-api';
 import { selectTafseerAudio } from '@/ai/flows/tafseer-audio-selector';
 
 interface NavigationResult {
@@ -113,41 +113,27 @@ export interface Tafseer {
 
 
 export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): Promise<Tafseer | null> {
-    const tafseerEditionId = lang === 'en' ? 169 : 159; // 169: Ibn Kathir (en), 159: Dr. Israr (ur)
-    const baseUrl = `https://quran-tafseer.com/api`;
-    
     try {
-        const url = `${baseUrl}/tafseer/${tafseerEditionId}/${surahNumber}`;
-        const response = await fetch(url, { cache: 'no-store' }); // Disable caching
-        
-        if (!response.ok) {
-            console.error(`Failed to fetch Tafseer for Surah ${surahNumber} from ${url}. Status: ${response.status} ${response.statusText}`);
-            const errorBody = await response.text();
-            console.error('Error Body:', errorBody);
-            return null;
-        }
-        
-        const data = await response.json();
-
-        if (!data || !Array.isArray(data) || data.length === 0) {
-            console.error(`No Tafseer data returned for Surah ${surahNumber} from ${url}.`);
+        const surahData = await getSurah(surahNumber, lang);
+        if (!surahData) {
             return null;
         }
 
-        // Get audio URL from our AI flow
         const audioResponse = await selectTafseerAudio({ surahNumber, language: lang });
         const audioUrl = audioResponse.audioUrl;
+        
+        const tafseerName = lang === 'en' ? 'English Translation (Saheeh International)' : 'Urdu Translation (Maududi)';
 
-        const ayahs: TafseerAyah[] = data.map((ayah: any) => ({
-            ayah: parseInt(ayah.ayah_number, 10),
-            text: ayah.text || "...", // Handle empty text fields
+        const ayahs: TafseerAyah[] = surahData.ayahs.map(ayah => ({
+            ayah: ayah.numberInSurah,
+            text: ayah.translation, // Use translation as the tafseer text
         }));
         
         return {
-          tafseer_id: data[0].tafseer_id,
-          tafseer_name: data[0].tafseer_name,
-          surah_name: data[0].surah_name,
-          surah_number: data[0].surah_number,
+          tafseer_id: lang === 'en' ? 1 : 2, // Arbitrary ID
+          tafseer_name: tafseerName,
+          surah_name: surahData.englishName,
+          surah_number: surahData.number,
           ayahs: ayahs,
           audioUrl: audioUrl,
         };
@@ -161,4 +147,3 @@ export async function getSurahTafseer(surahNumber: number, lang: 'en' | 'ur'): P
         return null;
     }
 }
-

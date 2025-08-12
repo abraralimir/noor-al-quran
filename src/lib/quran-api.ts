@@ -44,15 +44,25 @@ export async function getSurahs(): Promise<Surah[]> {
   }
 }
 
-// Fetches details for a single Surah.
+// Fetches details for a single Surah including translations.
 export async function getSurah(surahNumber: number, lang: string = 'en'): Promise<SurahDetails | null> {
     try {
-        const translationEdition = lang === 'ur' ? 'ur.maududi' : 'en.sahih';
-        const response = await fetch(`${ALQURAN_CLOUD_API_BASE_URL}/surah/${surahNumber}/editions/quran-uthmani,${translationEdition}`);
+        const editions = [
+            'quran-uthmani', // Arabic text
+            lang === 'ur' ? 'ur.maududi' : 'en.sahih' // Translation
+        ];
+        
+        const response = await fetch(`${ALQURAN_CLOUD_API_BASE_URL}/surah/${surahNumber}/editions/${editions.join(',')}`);
+        
         if (!response.ok) {
-            throw new Error(`Failed to fetch Surah ${surahNumber} from api.alquran.cloud`);
+            throw new Error(`Failed to fetch Surah ${surahNumber} from api.alquran.cloud. Status: ${response.status}`);
         }
+        
         const data = await response.json();
+
+        if (data.code !== 200 || !data.data || data.data.length < 2) {
+             throw new Error(`Invalid data structure for Surah ${surahNumber}`);
+        }
 
         const arabicEdition = data.data[0];
         const translationEditionData = data.data[1];
@@ -60,7 +70,7 @@ export async function getSurah(surahNumber: number, lang: string = 'en'): Promis
         const ayahs: Ayah[] = arabicEdition.ayahs.map((ayah: any, index: number) => ({
             number: ayah.number,
             audio: `https://cdn.islamic.network/quran/audio/64/ar.abdurrahmaansudais/${ayah.number}.mp3`,
-            audioSecondary: [], // This API doesn't provide secondary audio links in this call
+            audioSecondary: [],
             text: ayah.text,
             numberInSurah: ayah.numberInSurah,
             juz: ayah.juz,

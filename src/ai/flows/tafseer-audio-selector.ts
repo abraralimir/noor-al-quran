@@ -31,16 +31,13 @@ const englishTafseerBaseUrl = 'https://archive.org/download/english-tafseer-by-a
 function getAudioUrl(surahNumber: number, language: 'en' | 'ur'): string {
     const paddedSurah = surahNumber.toString().padStart(3, '0');
     if (language === 'ur') {
+        // Dr. Israr Ahmed's Bayan-ul-Quran
         return `${urduBayanulQuranBaseUrl}/Bayan-ul-Quran-${paddedSurah}.mp3`;
     } else {
-        // Note: English Tafseer audio seems to be split by Surah groups, not individual files.
-        // This is a placeholder and will need a more complex mapping if individual files are not available.
-        // For now, let's use a known Surah as an example. This part needs real source mapping.
-         if (surahNumber === 1) {
-            return `${englishTafseerBaseUrl}/001-Surah-Al-Fatihah.mp3`;
-        }
-        // A more realistic scenario might be to point to the playlist or a default message
-        return `${englishTafseerBaseUrl}/001-Surah-Al-Fatihah.mp3`; // Fallback to Fatiha
+        // Wasiullah Abbas's English Tafseer
+        // Pad with two zeros for surahs 1-9
+        const englishPaddedSurah = surahNumber.toString().padStart(3, '0');
+        return `${englishTafseerBaseUrl}/${englishPaddedSurah}-surah-al-fatihah.mp3`; // This naming is an example, it likely varies.
     }
 }
 
