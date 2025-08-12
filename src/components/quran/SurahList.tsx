@@ -1,4 +1,5 @@
 
+'use client';
 
 import type { Surah } from "@/types/quran";
 import Link from "next/link";
