@@ -7,7 +7,7 @@ import { useTranslation } from '@/hooks/use-translation';
 export default function LivePage() {
   const { t } = useTranslation();
 
-  const meccaVideoId = 'sKz44t8I53A';
+  const meccaVideoId = 'ueIOUTyRS84';
   const medinaVideoId = '0m9g-t_Hh1c';
 
   return (
