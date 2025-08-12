@@ -24,12 +24,15 @@ export function SurahDisplay({ surah }: SurahDisplayProps) {
             <p className="text-4xl font-arabic font-bold text-primary">{surah.name}</p>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <Separator className="mb-6" />
-          <AyahCard 
-            ayahs={surah.ayahs} 
-            surahNumber={surah.number} 
-          />
+          {surah.ayahs.map(ayah => (
+             <AyahCard 
+                key={ayah.number}
+                ayah={ayah} 
+                surahNumber={surah.number} 
+             />
+          ))}
         </CardContent>
       </Card>
     </div>
