@@ -5,15 +5,16 @@ import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
-import { LoaderCircle, Pause, Play } from 'lucide-react';
+import { LoaderCircle, Pause, Play, Volume2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface LearningCardProps {
   character?: string;
   name: string;
   description?: string;
+  examples?: string;
   gradient: string;
-  audioSrc: string;
+  audioSrc?: string;
   isQaida?: boolean;
 }
 
@@ -21,6 +22,7 @@ export function LearningCard({
   character,
   name,
   description,
+  examples,
   gradient,
   audioSrc,
   isQaida = false,
@@ -31,6 +33,8 @@ export function LearningCard({
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!audioSrc) return;
+    
     // Initialize audio element on mount
     audioRef.current = new Audio(audioSrc);
 
@@ -99,14 +103,19 @@ export function LearningCard({
       </div>
       <CardContent className="p-4 text-center bg-card flex flex-col items-center justify-center gap-4 flex-grow">
         {isQaida ? (
-           <p className="text-sm text-muted-foreground flex-grow">{description}</p>
+            <div className="text-center flex-grow flex flex-col justify-between">
+                <p className="text-sm text-muted-foreground mb-2">{description}</p>
+                {examples && <p className="font-arabic text-2xl font-bold text-primary">{examples}</p>}
+            </div>
         ) : (
           <h3 className="text-xl font-headline font-semibold text-foreground">{name}</h3>
         )}
-        <Button onClick={handlePlayAudio} disabled={isLoading} size="icon" className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 flex-shrink-0">
-          {isLoading ? <LoaderCircle className="animate-spin" /> : (isPlaying ? <Pause /> : <Play />)}
-          <span className="sr-only">Play audio for {name}</span>
-        </Button>
+        {audioSrc && (
+            <Button onClick={handlePlayAudio} disabled={isLoading} size="icon" className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 flex-shrink-0 mt-auto">
+                {isLoading ? <LoaderCircle className="animate-spin" /> : (isPlaying ? <Pause /> : <Play />)}
+                <span className="sr-only">Play audio for {name}</span>
+            </Button>
+        )}
       </CardContent>
     </Card>
   );

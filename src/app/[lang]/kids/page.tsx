@@ -69,8 +69,8 @@ export default function KidsPage() {
               key={item.title}
               name={item.title}
               description={item.description}
+              examples={item.examples}
               gradient={sectionColors.qaida}
-              audioSrc={item.audioSrc}
               isQaida={true}
             />
           ))}
