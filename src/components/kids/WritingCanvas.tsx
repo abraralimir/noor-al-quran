@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '../ui/button';
 import { LoaderCircle, Check, X, RefreshCw, Send } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '../ui/card';
@@ -17,13 +17,11 @@ export function WritingCanvas() {
     const { language } = useLanguage();
     const [currentLetterIndex, setCurrentLetterIndex] = useState(0);
     const [feedback, setFeedback] = useState<{ type: 'correct' | 'incorrect' | 'info'; message: string } | null>(null);
-    
-    const correctAudioRef = useRef<HTMLAudioElement | null>(null);
-    const incorrectAudioRef = useRef<HTMLAudioElement | null>(null);
+    const [hasDrawn, setHasDrawn] = useState(false);
 
     const currentLetter = arabicAlphabet[currentLetterIndex];
 
-    useEffect(() => {
+    const setupCanvas = useCallback(() => {
         const canvas = canvasRef.current;
         if (canvas) {
             const ctx = canvas.getContext('2d');
@@ -33,34 +31,26 @@ export function WritingCanvas() {
                 ctx.lineCap = 'round';
             }
         }
-        
-        // Preload audio files from public URLs
-        correctAudioRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_2b08a5e994.mp3');
-        incorrectAudioRef.current = new Audio('https://cdn.pixabay.com/audio/2022/03/10/audio_c848a6a222.mp3');
     }, []);
-
-    const playAudio = (type: 'correct' | 'incorrect') => {
-        if (type === 'correct' && correctAudioRef.current) {
-            correctAudioRef.current.play();
-        } else if (type === 'incorrect' && incorrectAudioRef.current) {
-            incorrectAudioRef.current.play();
-        }
-    };
     
+    useEffect(() => {
+        setupCanvas();
+    }, [setupCanvas]);
+
     const getCoords = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
         const canvas = canvasRef.current;
         if (!canvas) return { offsetX: 0, offsetY: 0 };
         const rect = canvas.getBoundingClientRect();
     
-        if ('touches' in event.nativeEvent) {
+        if ('touches' in event.nativeEvent && event.nativeEvent.touches.length > 0) {
             return {
                 offsetX: event.nativeEvent.touches[0].clientX - rect.left,
                 offsetY: event.nativeEvent.touches[0].clientY - rect.top,
             };
         }
         return {
-            offsetX: event.nativeEvent.offsetX,
-            offsetY: event.nativeEvent.offsetY,
+            offsetX: (event as React.MouseEvent<HTMLCanvasElement>).nativeEvent.offsetX,
+            offsetY: (event as React.MouseEvent<HTMLCanvasElement>).nativeEvent.offsetY,
         };
     };
 
@@ -71,6 +61,7 @@ export function WritingCanvas() {
             ctx.beginPath();
             ctx.moveTo(offsetX, offsetY);
             setIsDrawing(true);
+            setHasDrawn(true);
         }
     };
 
@@ -92,44 +83,53 @@ export function WritingCanvas() {
         }
     };
 
-    const clearCanvas = () => {
+    const clearCanvas = useCallback(() => {
         const canvas = canvasRef.current;
         if (canvas) {
             const ctx = canvas.getContext('2d');
             ctx?.clearRect(0, 0, canvas.width, canvas.height);
             setFeedback(null);
+            setHasDrawn(false);
         }
-    };
+    }, []);
 
     const handleSubmit = async () => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        if (!canvas || !hasDrawn) return;
 
         setIsProcessing(true);
         setFeedback(null);
         const imageDataUri = canvas.toDataURL('image/png');
         
-        const result = await handleWritingSubmission(imageDataUri, currentLetter.name, language);
+        try {
+            const result = await handleWritingSubmission(imageDataUri, currentLetter.name, language);
 
-        setFeedback({
-            type: result.isCorrect ? 'correct' : 'incorrect',
-            message: result.feedback,
-        });
-
-        playAudio(result.isCorrect ? 'correct' : 'incorrect');
-        
-        if (result.isCorrect) {
-            setTimeout(() => {
-                clearCanvas();
-                if (currentLetterIndex < arabicAlphabet.length - 1) {
-                    setCurrentLetterIndex(currentLetterIndex + 1);
-                } else {
-                     setFeedback({ type: 'info', message: language === 'ur' ? 'شاباش! آپ نے تمام حروف مکمل کر لیے ہیں۔' : 'Congratulations! You have completed all the letters.' });
-                }
-            }, 2000); // Wait 2 seconds before moving to the next letter
+            setFeedback({
+                type: result.isCorrect ? 'correct' : 'incorrect',
+                message: result.feedback,
+            });
+            
+            if (result.isCorrect) {
+                setTimeout(() => {
+                    if (currentLetterIndex < arabicAlphabet.length - 1) {
+                        setCurrentLetterIndex(currentLetterIndex + 1);
+                        clearCanvas();
+                    } else {
+                         setFeedback({ type: 'info', message: language === 'ur' ? 'شاباش! آپ نے تمام حروف مکمل کر لیے ہیں۔' : 'Congratulations! You have completed all the letters.' });
+                    }
+                }, 2000); // Wait 2 seconds before moving to the next letter
+            }
+        } catch (error) {
+             setFeedback({ type: 'incorrect', message: language === 'ur' ? 'کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں.' : 'Something went wrong. Please try again.'});
+        } finally {
+            setIsProcessing(false);
         }
-        setIsProcessing(false);
     };
+    
+    // Reset canvas when letter changes
+    useEffect(() => {
+      clearCanvas();
+    }, [currentLetterIndex, clearCanvas]);
 
     // Prevent scrolling while drawing on canvas on mobile
     useEffect(() => {
@@ -187,7 +187,7 @@ export function WritingCanvas() {
                         <RefreshCw className="mr-2" />
                         {language === 'ur' ? 'صاف کریں' : 'Clear'}
                     </Button>
-                    <Button onClick={handleSubmit} disabled={isProcessing}>
+                    <Button onClick={handleSubmit} disabled={isProcessing || !hasDrawn}>
                         {isProcessing ? <LoaderCircle className="animate-spin mr-2" /> : <Send className="mr-2" />}
                         {language === 'ur' ? 'جمع کرائیں' : 'Submit'}
                     </Button>

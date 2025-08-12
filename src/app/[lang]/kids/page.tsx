@@ -7,12 +7,6 @@ import { useTranslation } from '@/hooks/use-translation';
 import { arabicAlphabet, nooraniQaida } from '@/lib/kids-data';
 import { BookMarked, BookAudio, Pencil } from 'lucide-react';
 
-const sectionColors = {
-  letters: 'from-sky-400 to-blue-500',
-  qaida: 'from-emerald-400 to-teal-500',
-  writing: 'from-amber-400 to-orange-500',
-};
-
 export default function KidsPage() {
   const { t } = useTranslation();
 
@@ -31,7 +25,7 @@ export default function KidsPage() {
       
       {/* AI Writing Instructor Section */}
       <section>
-        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r ${sectionColors.writing} text-white shadow-lg`}>
+        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg`}>
           <Pencil className="w-10 h-10" />
           <h2 className="text-3xl font-headline font-bold">{t('writingInstructorTitle')}</h2>
         </div>
@@ -40,7 +34,7 @@ export default function KidsPage() {
 
       {/* Arabic Letters Section */}
       <section>
-        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r ${sectionColors.letters} text-white shadow-lg`}>
+        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 text-white shadow-lg`}>
           <BookMarked className="w-10 h-10" />
           <h2 className="text-3xl font-headline font-bold">{t('learnArabicLetters')}</h2>
         </div>
@@ -50,8 +44,6 @@ export default function KidsPage() {
               key={`${item.name}-${item.letter}`}
               character={item.letter}
               name={item.name}
-              gradient={sectionColors.letters}
-              audioSrc={item.audioSrc}
             />
           ))}
         </div>
@@ -59,7 +51,7 @@ export default function KidsPage() {
 
       {/* Noorani Qaida Section */}
       <section>
-        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r ${sectionColors.qaida} text-white shadow-lg`}>
+        <div className={`flex items-center gap-4 mb-6 p-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-white shadow-lg`}>
           <BookAudio className="w-10 h-10" />
           <h2 className="text-3xl font-headline font-bold">{t('learnNooraniQaida')}</h2>
         </div>
@@ -70,7 +62,6 @@ export default function KidsPage() {
               name={item.title}
               description={item.description}
               examples={item.examples}
-              gradient={sectionColors.qaida}
               isQaida={true}
             />
           ))}
