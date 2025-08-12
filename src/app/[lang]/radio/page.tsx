@@ -7,12 +7,8 @@ import { RadioPlayerCard } from '@/components/quran/RadioPlayerCard';
 
 const radioStations = [
   {
-    name: 'Quran Recitation (Mishary Al-Afasy)',
-    streamUrl: 'https://Qurango.net/radio/mishari_al_afasi',
-  },
-  {
     name: 'Quran Recitation (Abdul Rahman Al-Sudais)',
-    streamUrl: 'https://qurango.net/radio/abdulrahman_alsudaes',
+    streamUrl: 'https://Qurango.net/radio/sudais',
   },
   {
     name: 'Quran in English',
