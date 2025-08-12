@@ -10,9 +10,9 @@ import { getSurahTafseer, Tafseer } from '@/actions/quran';
 import { LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSearchParams } from 'next/navigation';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
 import { TafseerPlayer } from '@/components/quran/TafseerPlayer';
+import { Separator } from '@/components/ui/separator';
 
 interface TafseerPageClientProps {
   surahs: Surah[];
@@ -43,6 +43,9 @@ export function TafseerPageClient({ surahs }: TafseerPageClientProps) {
             setError(t('surahNotFoundDescription'));
         }
     } catch (e) {
+        if (e instanceof Error) {
+          console.error(e.message);
+        }
         setError(t('tutorPageDescription'));
     } finally {
         setIsLoading(false);
@@ -119,18 +122,17 @@ export function TafseerPageClient({ surahs }: TafseerPageClientProps) {
                 <CardDescription>{t('tafseerBy')} {result.tafseer_name}</CardDescription>
             </CardHeader>
             <CardContent>
-                <Accordion type="single" collapsible className="w-full">
-                    {result.ayahs.map(ayah => (
-                       <AccordionItem key={ayah.ayah} value={`item-${ayah.ayah}`}>
-                            <AccordionTrigger>
-                               <span className={cn("font-bold", language === 'ur' ? 'ml-4' : 'mr-4')}>{t('ayah')} {ayah.ayah}</span>
-                            </AccordionTrigger>
-                            <AccordionContent className={cn("px-4 text-base", language === 'ur' ? 'text-right font-urdu' : '')} dir={language === 'ur' ? 'rtl' : 'ltr'}>
-                                {ayah.text}
-                            </AccordionContent>
-                        </AccordionItem>
+                <div className="w-full space-y-6">
+                    {result.ayahs.map((ayah, index) => (
+                       <div key={ayah.ayah} className="space-y-2">
+                           <p className="font-bold text-lg">{t('ayah')} {ayah.ayah}</p>
+                           <p className={cn("px-4 text-base", language === 'ur' ? 'text-right font-urdu' : '')} dir={language === 'ur' ? 'rtl' : 'ltr'}>
+                               {ayah.text || "No Tafseer text available for this Ayah."}
+                           </p>
+                           {index < result.ayahs.length - 1 && <Separator />}
+                       </div>
                     ))}
-                </Accordion>
+                </div>
             </CardContent>
         </Card>
         </>
